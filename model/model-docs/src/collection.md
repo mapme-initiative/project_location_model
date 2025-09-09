@@ -13,7 +13,7 @@ Examples:
 The current model version (still) differentiates between **mandatory and non-mandatory fields**. You can get information whether a certain field is mandatory in the field descriptions (see Annex 1 and 2).  
 
 ## Time of Data Collection
-KfW strongly encourages the PEA or consultant to collect geo-coordinates **as early as possible** to increase the utilization potential of such data throughout the entire project cycle. If possible, data shall be collected already during the project preparation phase, e.g. as part of a feasibility study. Data can later be updated if a project location site changes. Data updates should be performed, ideally, on an annual base with the usual progress reports, if not speficied differently. 
+KfW strongly encourages the PEA or consultant to collect geo-coordinates **as early as possible** to increase the utilization potential of such data throughout the entire project cycle. If possible, data should be collected already during the project preparation phase, e.g. as part of a feasibility study. Data can later be updated if a project location site changes. Data updates should be performed, ideally, on an annual base with the usual progress reports, if not speficied differently. 
 
 ## Geographical exactness, geometry and aggregation 
 In the sense of the IATI standard, a project location can be either **exact** or **approximate**. Exact locations refer to the geographical endpoints of financial flows. They are reported with exact coordinates. It is also possible to report project locations as "approximate" if the exact location of the project implementation site is yet unknown or should be anonymized e.g. for security reasons. An appropriate form of reporting an approximate location could be the use the administrative area where the project is supposed to be implemented. 
@@ -48,5 +48,6 @@ For the collection of line- or polygon-locations you shall use the **.GeoJSON** 
  2. **Database-extraction**: If you already have  location information in a geospatial database you may want to extract and transform that information in a way that matches our requirements. In this case you can use the data-model provided as a [JSON Schema](www.google.de) to extract the data from your DB and convert it  creating appropriate field-mappings. This comes in handy for batch-conversions but you may need to (manually) add missing information. 
 
 If using GeoJSON format, multi-point, -line or -polygon features can be submitted as well to reduce redundancy for data inputs. This can be usefull if the same project activity benefits multiple sites (e.g. all agricultural plots that benefit from one irrigation infrastructure). 
+
 
 
