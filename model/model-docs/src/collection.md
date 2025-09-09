@@ -5,7 +5,6 @@
 
 The responsible party shall gather all project locations that received financial support within the context of a specific cooperation project. Project locations are generally to be collected on the **output level**. Nonetheless, if geospatial data can also contribute to the measurement of project outcomes and impacts, then location data for potential outcome sites shall be submitted as well. 
 
-
 Examples: 
 
 1. A project financially supports the construction of a hospital. The hospital has a specific location with a single feature (point) which indicates the spatial location of the hospital (=output). Project outcomes are to be measured using non-geospatial data (e.g. patient statistics), hence no further submission of project locations is necessary. 
@@ -13,9 +12,16 @@ Examples:
 
 The current model version (still) differentiates between **mandatory and non-mandatory fields**. You can get information whether a certain field is mandatory in the field descriptions (see Annex 1 and 2).  
 
-## Geographical representation and aggregation 
+## Time of Data Collection
+KfW strongly encourages the PEA or consultant to collect geo-coordinates **as early as possible** to increase the utilization potential of such data throughout the entire project cycle. If possible, data shall be collected already during the project preparation phase, e.g. as part of a feasibility study. Data can later be updated if a project location site changes. Data updates should be performed, ideally, on an annual base with the usual progress reports, if not speficied differently. 
 
-Project locations can have three different geometry types:
+- If no exact locations can be determined at the collection stage, approximate location shall be used to report on the possible intervention areas. A common way to to so is to use **administrative areas** e.g. on level 1,2 or 3. If there is no official administrative area data at hand, we recommend to use fieldmaps.io as an adequate alternative ressource. 
+- If the projects already have a longlist of potential intervention sites with exact locations, then those locations shall be collected and reported within the data submission. In this case the field "activity status" shall be filled out with "Pipeline/identification" to highlight that the location is under study, but subject to change. 
+
+## Geographical exactness, geometry and aggregation 
+In the sense of the IATI standard, a project location can be either **exact** or **approximate**. Exact locations refer to the geographical endpoints of financial flows. They are reported with exact coordinates. It is also possible to report project locations as "approximate" if the exact location of the project implementation site is yet unknown or should be anonymized e.g. for security reasons. An appropriate form of reporting an approximate location could be the use the administrative area where the project is supposed to be implemented. 
+
+Project locations can have three different **geometry types**:
 - **Point geometry**, e.g. a well or a hospital.
 - **Line geometry**, e.g. a road or transmission line.
 - **Polygon geometry**, e.g. a protected area, agricultural plot or administrative unit.
@@ -45,3 +51,4 @@ For the collection of line- or polygon-locations you shall use the **.GeoJSON** 
  2. **Database-extraction**: If you already have  location information in a geospatial database you may want to extract and transform that information in a way that matches our requirements. In this case you can use the data-model provided as a [JSON Schema](www.google.de) to extract the data from your DB and convert it  creating appropriate field-mappings. This comes in handy for batch-conversions but you may need to (manually) add missing information. 
 
 If using GeoJSON format, multi-point, -line or -polygon features can be submitted as well to reduce redundancy for data inputs. This can be usefull if the same project activity benefits multiple sites (e.g. all agricultural plots that benefit from one irrigation infrastructure). 
+
