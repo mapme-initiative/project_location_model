@@ -45,8 +45,3 @@ For the collection of line- or polygon-locations you shall use the **.GeoJSON** 
  2. **Database-extraction**: If you already have  location information in a geospatial database you may want to extract and transform that information in a way that matches our requirements. In this case you can use the data-model provided as a [JSON Schema](www.google.de) to extract the data from your DB and convert it  creating appropriate field-mappings. This comes in handy for batch-conversions but you may need to (manually) add missing information. 
 
 If using GeoJSON format, multi-point, -line or -polygon features can be submitted as well to reduce redundancy for data inputs. This can be usefull if the same project activity benefits multiple sites (e.g. all agricultural plots that benefit from one irrigation infrastructure). 
-
-## Data Validation
-You are required to validate your data before submission to KfW. This increases data quality at entry and reduces the need to go back and forth betweeen you and your project partners. You can do this manually by comparing your data to our requirements described in the [Annex of this guide](www.google.de). 
-
-As an alternative you can also use our [online-validator](www.google.de) which accepts both GeoJSON and Excel files and also allows you to visualize submitted information on a map. 
