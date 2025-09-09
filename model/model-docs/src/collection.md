@@ -37,17 +37,18 @@ In case you are unsure, please get in touch with your project partner to discuss
 ## Collection of point-locations using Excel
 For the collection of point-loctions we currently accept submissions in the **.XLSX** and **.GeoJSON** format.   
  
- The **.XLSX** format is best suited, if your institution does not know how to handle geospatial data and has no former expirience with GIS software. In this case you can use our [Excel Templates](www.google.de) to collect all relevant information including geographic coordinates to be put into the Latitude and Longitude columns.
+ The **.XLSX** format is best suited, if your institution does not know how to handle geospatial data and has no former expirience with GIS software. In this case you can use our [Excel Templates](./xlsx.md) to collect all relevant information including geographic coordinates to be put into the Latitude and Longitude columns.
  
  The **GeoJSON** format is preffered for its reliability and flexibility . It is also capable of handling line- and polygon geometries. More information on its usage is given in the next section below. 
 
 ## Collection of point-, line-, and polygon-locations using GIS software
 For the collection of line- or polygon-locations you shall use the **.GeoJSON** format. For point-locations  this is optional, but preffered. We highlight two common cases for generating the required data: 
 
- 1. **Desktop-production**: For a manual data collection we recommend to use our [Excel Templates](www.google.de) to collect all attribute information in Excel and then merge this information with the spatial information (feature geometries) in a GIS software. Because our Excel Templates are pre-configured, it is easier to provide data that is compliant with out [data-model](www.google.de) and pass our [validation check](www.google.de). You can see a short [Video Tutorial](www.youtube.com) that shows you how to do this using Excel and the QGIS software.
- 2. **Database-extraction**: If you already have  location information in a geospatial database you may want to extract and transform that information in a way that matches our requirements. In this case you can use the data-model provided as a [JSON Schema](www.google.de) to extract the data from your DB and convert it  creating appropriate field-mappings. This comes in handy for batch-conversions but you may need to (manually) add missing information. 
+ 1. **Desktop-production**: For a manual data collection we recommend to use our [Excel Templates](./xlsx.md) to collect all attribute information in Excel and then merge this information with the spatial information (feature geometries) in a GIS software. Because our Excel Templates are pre-configured, it is easier to provide data that is compliant with out [data-model](./json.md) and pass our [validation check](./validation.md). You can see a short [Video Tutorial](www.youtube.com) that shows you how to do this using Excel and the QGIS software.
+ 2. **Database-extraction**: If you already have  location information in a geospatial database you may want to extract and transform that information in a way that matches our requirements. In this case you can use the data-model provided as a [JSON Schema](./json.md) to extract the data from your DB and convert it  creating appropriate field-mappings. This comes in handy for batch-conversions but you may need to (manually) add missing information. 
 
 If using GeoJSON format, multi-point, -line or -polygon features can be submitted as well to reduce redundancy for data inputs. This can be usefull if the same project activity benefits multiple sites (e.g. all agricultural plots that benefit from one irrigation infrastructure). 
+
 
 
 
