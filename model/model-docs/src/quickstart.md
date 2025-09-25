@@ -22,5 +22,6 @@ This guide is structured in the following way:
  3. [Validating Location Data](./validation.md) An online tool to validate collected information against the requirements of our data model
  4. [FAQs](./faqs.md): Frequently Asked Questions and background information
  
- [Annex 1: Excel templates](./annex1.md): For data collection in English or French
- [Annex 2: JSON schema](./annex2.md): A description of the **datamodel** based on a json-schema
+ - [Annex 1: Excel templates](./annex1.md): For data collection in English or French
+ - [Annex 2: JSON schema](./annex2.md): A description of the **datamodel** based on a json-schema
+
