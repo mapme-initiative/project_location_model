@@ -1,5 +1,6 @@
 # Summary
 
+- [Quickstart guide](./quickstart.md)
 - [Introduction](./introduction.md)
 - [Collecting Location Data](./collection.md)
 - [Validating Location Data](./validation.md)
