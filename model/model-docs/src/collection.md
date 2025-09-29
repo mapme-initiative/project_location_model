@@ -11,7 +11,7 @@ Examples:
 
 2. A project financially supports the construction of irrigation infrastructure that benefits a group of small-scale farmers. The irrigation infrastructure (=output) is composed of multiple features (e.g. irrigation channels and small dams) that are mapped as a collection of features (i.e. multiple points). Furthermore, remote sensing data is consulted to measure project outcomes (e.g. by quantifying changes in agricultural productivity). In this case, geospatial information on outcome areas (i.e. the agricultural plots that make use of and benefit from the irrigation infrastructure) should also be submitted.
 
-The current version of the Project Locations Model differentiates between **mandatory and non-mandatory fields**. Mandatory fields are indicated in the field descriptions (see Annexes 1 and 2).  
+The current version of the Project Locations Model differentiates between **mandatory and non-mandatory fields**. Mandatory fields are indicated in the field descriptions (see Annexes 1 and 2). This distinction will be depracted in the next release of the data model. 
 
 ## Initial data collection and frequency of updates
 KfW strongly encourages the PEA or consultant to collect geo-coordinates **as early as possible** to increase the utilization potential of such data throughout the entire project cycle. If possible, data should be collected already during the project preparation phase, e.g. as part of a feasibility study. Data can be updated later if a project location site changes. Data updates should be ideally performed on an annual basis with the preparation of progress reports, if not otherwise specified. 
@@ -19,7 +19,7 @@ KfW strongly encourages the PEA or consultant to collect geo-coordinates **as ea
 ## Geographical accuracy, geometry, and aggregation 
 IATI standard describes a Project Location as **exact** or **approximate**. Exact locations refer to the geographical endpoints of financial flows and are reported with precise coordinates. All exact coordinates in Excel must be collected using WGS 84 (EPSG 4326) as the coordinate reference system, which is the standard for web mapping applications. Coordinates (Latitudes and Longitudes) have to be provided with an accuracy of at least 5 digits.
 
-It is also possible to report an approximate Project Location, if the exact location of the project implementation site is unknown or should be anonymized (e.g. for security reasons). In these cases, an appropriate form of reporting should be used (e.g. using administrative area where the project is implemented instead). 
+It is also possible to report an approximate Project Location, if the exact location of the project implementation site is unknown or should be anonymized (e.g. for security reasons). In these cases, an appropriate form of reporting should be used (e.g. using administrative area where the project is implemented instead). More explanations on when to use approximate locations are given in the FAQs.
 
 Project Locations can be represented by three **types of geometry**:
 - **points**, e.g. a well or a hospital
@@ -55,4 +55,4 @@ We highlight two common cases for generating the required data:
  2. **Database-extraction**: If location information is available in a geospatial database, it is possible to extract and transform the data into field-mappings that also match our requirements. In these cases, the data-model can be provided as a [JSON schema](./annex2.md). This supports batch conversions as a starting point; any missing information can then be manually added.
 
 
-If GeoJSON format is used, multi-point, -line or -polygon features can also be submitted to reduce data redundancies. This can be useful if the same project activity benefits multiple sites (e.g. all agricultural plots that benefit from an irrigation infrastructure). 
+If GeoJSON format is used, multi-point, -line or -polygon features can also be submitted to reduce data redundancies. This can be useful if the same project activity benefits multiple sites (e.g. all agricultural plots that benefit from an irrigation infrastructure). You can also use multi geometry feature collections if your submitted data contains different geometry formats. 
