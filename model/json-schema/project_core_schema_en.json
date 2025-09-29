@@ -19,11 +19,11 @@
             "type": "string"
         },
         "budgetShare": {
-            "description": "The budget share allocated to this location in €.",
+            "description": "The budget share allocated to this location in Euros. The sum of all locations in a project should add up to the budget sum in INPRO/PMT, including overheads. Please do not enter data from private entities/PEAs here.",
             "type": "number"
         },
         "dac5PurposeCode": {
-            "description": "The DAC 5 Purpose Codes for the entire project.",
+            "description": "The DAC 5 Purpose Codes (1 to 4) for the entire project. This is provided by KfW in the Project Location data collection ToR of by the KfW counterpart.",
             "$ref": "stack://schemas/dac5.schema"
         },
         "dataOwner": {
@@ -31,7 +31,7 @@
             "type": "string"
         },
         "dateOfDataCollection": {
-            "description": "Date of data collection or latest update.",
+            "description": "Date of data collection or latest update. In case only the year is available please choose the 1st of January i.e. YYYY-01-01",
             "format": "date",
             "type": "string"
         },
@@ -40,7 +40,7 @@
             "type": "string"
         },
         "geographicExactness": {
-            "description": "Please use 'exact' if you know the geographically exact end destination of a financial flow.",
+            "description": "Please use 'exact' if the end destination of a financial flow is geographically known, and it is not an administrative unit, and if you do not face security restrictions to do so. Otherwise, please choose 'approximate (yet unknown)', 'approximate (security)', or 'approximate (admin unit)'.",
             "enum": [
                 "exact",
                 "approximate (yet unknown)",
@@ -53,15 +53,40 @@
             "description": "Sectoral / cross-sectoral location type preselection field. / most appropriate location type",
             "$ref": "stack://schemas/sector_location_type.schema"
         },
-        "kfwProjectNoINPRO": {
-            "description": "Every project location in the FC Geodata Model must be assigned to its respective KfW project number, which is provided by KfW.",
+        "KCThemeSubSector": {
+            "description": "After selecting the KC Theme/Sub-Sector, please choose the most appropriate 'Location Type'. If there is no suitable option, please select 'other physical' or 'other immaterial' and fill out the next column 'Alternative Location Type'.",
+            "enum": [
+                "x",
+                "y",
+                "z"
+            ],
             "type": "string"
         },
+        "kfwProjectNoINPRO": {
+            "description": "Every project location in the FC Geodata Model must be assigned to its respective KfW project number, which is provided by KfW in the Project Location data collection ToR.",
+            "type": "string"
+        },
+        "KMLfilename": {
+            "description": "Filename of the KML file if provided for the Project Location, where the associated geometry information is found. Note that to link an entry from this Excel to the KML file, it is required to correctly fill in the Primary Key column.",
+            "type": "string"
+        },
+        "KMLprimaryKey": {
+            "description": "This is only required if you provide additional geolocation information in another KML file. The geometry in the KML file should have the same primary key as listed here.",
+            "type": "number"
+        },
+        "latitude": {
+            "description": "Latitude of the Project Location measured with a GPS device or centroid for approximate locations. Use WGS 84 as the Coordinate Reference System (ESPG:4326).",
+            "type": "number"
+        },
+        "longitude": {
+            "description": "Longitude of the Project Location measured with a GPS device or centroid for approximate locations. Use WGS 84 as the Coordinate Reference System (ESPG:4326).",
+            "type": "number"
+        },
         "locationActivityStatus": {
-            "description": "The location activity status according to the IATI standard.",
+            "description": "The location activity status based on IATI standard. Choose NA if the status is uncertain",
             "enum": [
                 "NA",
-                "Pipeline/identification",
+                "Pipeline/Identification",
                 "Implementation",
                 "Finalisation",
                 "Closed",
@@ -72,16 +97,25 @@
             "type": "string"
         },
         "locationName": {
-            "description": "Short name of the project site ideally containing a summary of the main project activity and the location name.",
+            "description": "Short name of the project site ideally containing a summary of the main project activity and the location name. Must be from the list of location names in the location type sheet.",
+            "type": "string"
+        },
+        "locationTypeName": {
+            "description": "After selecting the KC Theme/Sub-Sector, please choose the most appropriate 'Location Types'. If there is no suitable option, please select 'other physical' or 'other immaterial' and fill out the next column 'Alternative Location Type'.",
+            "enum": [
+                "x",
+                "y",
+                "z"
+            ],
             "type": "string"
         },
         "plannedOrActualEndDate": {
-            "description": "Approximate planned or actual end date of activities on the ground.",
+            "description": "Approximate planned or actual end date of activities on the ground. If there is no information available, please enter YYYY-01-01.",
             "format": "date",
             "type": "string"
         },
         "plannedOrActualStartDate": {
-            "description": "Approximate planned or actual start date of implementation of activities on the ground.",
+            "description": "Approximate planned or actual start date of implementation of activities on the ground. If there is no information available, please enter YYYY-01-01. Ideally defined in the Project Locations data collection ToR.",
             "format": "date",
             "type": "string"
         },
@@ -90,7 +124,7 @@
             "type": "string"
         },
         "projectAcronym": {
-            "description": "Please enter the acronym used for the name/title of the project to be visible on your map.",
+            "description": "Please enter the acronym used for the name/title of the project to be visible on your map. If the project has multiple phases, please add the phase number belonging to the aforementioned KfW Project-No.",
             "type": "string"
         },
         "projectSpecificLocationIdentifier": {
@@ -105,11 +139,11 @@
             "type": "string"
         },
         "relatedCommunityVillageNeighborhood": {
-            "description": "You may enter a village, hamlet, or neighborhood name that relates to this location.",
+            "description": "You may enter a village, hamlet, or neighborhood name that relates to this location. This can serve to manually add smaller community or administrative unit names not identified in existing global databases.",
             "type": "string"
         },
         "uniqueId": {
-            "description": "For new locations, this column will be empty. For updates, your KfW counterpart will provide you with a list of unique_id numbers in this file to ensure that updated location IDs match with the former ones.",
+            "description": "For new locations, this column is empty. For updates, your KfW counterpart will provide you with a list of unique_id numbers in this file to ensure that updated location IDs match with the former ones.",
             "type": "string"
         }
     },
@@ -118,6 +152,10 @@
         "dataOwner",
         "publishingRestrictions",
         "locationName",
+        "locationTypeName",
+        "latitude",
+        "longitude",
+        "KCThemeSubSector",
         "plannedOrActualStartDate",
         "plannedOrActualEndDate",
         "activityDescriptionGeneral",
