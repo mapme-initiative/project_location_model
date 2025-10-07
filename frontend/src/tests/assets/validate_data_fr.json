@@ -1,0 +1,35 @@
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [
+      74.5987,
+      36.2945
+    ]
+  },
+  "properties": {
+    "kfwProjectNoINPRO": "29937",
+    "uniqueId": "Example ->",
+    "plannedOrActualEndDate": "2024-12-13",
+    "plannedOrActualStartDate": "2019-12-13",
+    "dateOfDataCollection": "2020-02-01",
+    "sector_location": {
+      "sector": "Énergie",
+      "location_type": "centrale hydroélectrique / barrage"
+    },
+    "schemeVersion": "1.0",
+    "projectAcronym": "HRE II",
+    "dataOwner": "Integration Consuling Group SA",
+    "publishingRestrictions": "non",
+    "projectSpecificLocationIdentifier": "WPD_0129",
+    "locationName": "Hassanabad I",
+    "locationActivityStatus": "Identification",
+    "activityDescriptionGeneral": "Réhabilitation de centrale hydroélectrique",
+    "additionalActivityDescription": "1,5 MW",
+    "dac5PurposeCode": 23210,
+    "budgetShare": 1,
+    "geographicExactness": "exacte",
+    "relatedCommunityVillageNeighborhood": "Ville de Hassanabad ",
+    "filenameOfAdditionalGeoData": "aucun fichier additionnel"
+  }
+}
