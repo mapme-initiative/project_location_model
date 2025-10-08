@@ -19,11 +19,11 @@
             "type": "string"
         },
         "budgetShare": {
-            "description": "The budget share allocated to this location in €.",
+            "description": "The budget share allocated to this location in Euros. The sum of all locations in a project should add up to the budget sum in INPRO/PMT, including overheads. Please do not enter data from private entities/PEAs here",
             "type": "number"
         },
         "dac5PurposeCode": {
-            "description": "The DAC 5 Purpose Codes for the entire project.",
+            "description": "The DAC 5 Purpose Codes (1 to 4) for the entire project. This is provided by KfW in the Project Location data collection ToR of by the KfW counterpart.",
             "$ref": "dac5_schema.json"
         },
         "dataOwner": {
@@ -31,7 +31,7 @@
             "type": "string"
         },
         "dateOfDataCollection": {
-            "description": "Date of data collection or latest update.",
+            "description": "Date of data collection or latest update. In case only the year is available please choose the 1st of January i.e. YYYY-01-01",
             "format": "date",
             "type": "string"
         },
@@ -40,7 +40,7 @@
             "type": "string"
         },
         "geographicExactness": {
-            "description": "Please use 'exact' if you know the geographically exact end destination of a financial flow.",
+            "description": "Please use 'exact' if the end destination of a financial flow is geographically known, and it is not an administrative unit, and if you do not face security restrictions to do so. Otherwise, please choose 'approximate (yet unknown)', 'approximate (security)', or 'approximate (admin unit)'",
             "enum": [
                 "exact",
                 "approximate (yet unknown)",
@@ -105,11 +105,11 @@
             "type": "string"
         },
         "relatedCommunityVillageNeighborhood": {
-            "description": "You may enter a village, hamlet, or neighborhood name that relates to this location.",
+            "description": "You may enter a village, hamlet, or neighborhood name that relates to this location. This can serve to manually add smaller community or administrative unit names not identified in existing global databases.",
             "type": "string"
         },
         "uniqueId": {
-            "description": "For new locations, this column will be empty. For updates, your KfW counterpart will provide you with a list of unique_id numbers in this file to ensure that updated location IDs match with the former ones.",
+            "description": "For new locations, this column is empty. For updates, your KfW counterpart will provide you with a list of unique_id numbers in this file to ensure that updated location IDs match with the former ones.",
             "type": "string"
         }
     },
