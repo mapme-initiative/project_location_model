@@ -13,7 +13,7 @@ npm run dev
 ```
 
 
-## Analyize-Tools
+## Analyze-Tools
 * SonarQube: for code quality
 * CodeQL: for code security
 * Dependabot: for dependency updates (maybe renovate-bot)
