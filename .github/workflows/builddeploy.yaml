@@ -1,0 +1,49 @@
+#credits to https://medium.com/@kinneko-de/react-typescript-and-cd-to-github-pages-2024-92d4f19d71d7
+name: Deploy React to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # name of the branch you are pushing to
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup mdbook
+        uses: peaceiris/actions-mdbook@v2
+        with:
+          mdbook-version: 'latest'
+      - name: Build mdbook
+        run: cd model && mdbook build model-docs
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Dependencies
+        run: cd frontend && npm ci
+      - name: Build
+        run: cd frontend && npm run build
+      - name: move the ogm-validator to model/model-docs/book/ogm-validator
+        run: mkdir -p model/model-docs/book/ogm-validator && cp -R frontend/dist/* model/model-docs/book/ogm-validator
+      - name: Upload model-docs
+        uses: actions/upload-pages-artifact@v3
+        id: ogm-model-docs
+        with:
+          path: 'model/model-docs/book/'
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: 'https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/'
+    steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Deploy
+        uses: actions/deploy-pages@v4
