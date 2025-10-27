@@ -23,12 +23,12 @@ import {
 import SendMailButton from "./SendMailButton.tsx";
 import {ExcelConverter, OGMFileTypes, SupportedLangs, Utils} from "../services/util/Utils.ts";
 import {ValidatorFactory} from "../services/util/Validator.ts";
+import FileUpload from "./FileUpload.tsx";
 
 export default function FileValidator(): React.ReactElement {
 	const [lang, setLang] = useState<SupportedLangs>('fr');
 	const [validationResult, setValidationResult] = useState<string | null>(null);
 	const [geoJsonDataWrap, setGeoJsonDataWrap] = useState<any>(null);
-	const [fileInputKey, setFileInputKey] = useState<number>(0);
 	const [enableEMailButton, setEnableEMailButton] = useState<boolean>(false);
 	const [openNoSheetDialog, setOpenNoSheetDialog] = React.useState(false);
 	const [inProNumbers, setInProNumbers] = useState<Set<string> | null>(null);
@@ -60,7 +60,7 @@ export default function FileValidator(): React.ReactElement {
 					case "Feature": {
                         const isValid = validateProject ? validateProject(geoJsonData) : false;
                         if (isValid) {
-                            setValidationResult("GeoJSON Feature is valid!");
+                            setValidationResult("GeoJSON Feature Data is valid!");
                             setGeoJsonDataWrap({type: "FeatureCollection", features: [geoJsonData]}); // Wrap in FeatureCollection
                         } else {
                             // Format validation errors
@@ -77,10 +77,10 @@ export default function FileValidator(): React.ReactElement {
                             .filter(Utils.notNull); // Remove invalid features
 
                         if (transformedFeatures.length === geoJsonData.features.length) {
-                            setValidationResult("GeoJSON FeatureCollection is valid!");
+                            setValidationResult("GeoJSON FeatureCollection Data is valid!");
                         } else {
                             setValidationResult(
-                                "Some features in the GeoJSON FeatureCollection failed validation."
+                                "Error: Some features in the GeoJSON FeatureCollection failed validation."
                             );
                         }
 
@@ -107,7 +107,6 @@ export default function FileValidator(): React.ReactElement {
 		// Clear the GeoJSON data and reset the validation result
 		setGeoJsonDataWrap(null);
 		setValidationResult(null);
-		setFileInputKey(0);
 		setOpenNoSheetDialog(false)
 		setEnableEMailButton(false)
 
@@ -140,7 +139,7 @@ export default function FileValidator(): React.ReactElement {
 		const fileType = file.type == "" && file.name.includes(".geojson") ? "application/geo+json" : file.type;
 		const reader = new FileReader();
 
-		switch (fileType as keyof OGMFileTypes) {
+		switch (fileType) {
 			case OGMFileTypes.GEOJSON:
 			case OGMFileTypes.JSON_APP:
 			case OGMFileTypes.JSON_TEXT:
@@ -241,8 +240,13 @@ export default function FileValidator(): React.ReactElement {
 			<header>
 				<h1>Location Validator</h1>
 				<p>
-					The Location Validator is an open-source tool designed to validate project location data against the specifications of KfWs Open Project Location Model. The validator accepts both Excel and GeoJSON files as input data. It identifies errors that need to be addressed, such as missing values in mandatory fields or incorrect formats for specific entries (e.g., dates not provided in the correct format). Errors should be corrected in the original file using Excel or GIS software, after which the files can be re-evaluated using this tool. Additionally, you can utilize the map feature within the tool to assess the geographic accuracy of the submitted project locations.
-					Once all locations are valid, the "SEND EMAIL" button will appear green. You can than send an email with the validated data to your project counterpart. Important: Make sure to attach the latest validated (and valid) version to the email.				</p>
+					The Location Validator is an open-source tool designed to validate project location data against the specifications of <a target={"_blank"} href={"google.de"}>KfWs Open Project Location Model</a>. The validator accepts both Excel and GeoJSON files as input data. It identifies errors that need to be addressed, such as missing values in mandatory fields or incorrect formats for specific entries (e.g., dates not provided in the correct format). <br/><br/>Errors should be corrected in the original file using Excel or GIS software, after which the files can be re-evaluated using this tool. Additionally, you can utilize the map feature within the tool to assess the geographic accuracy of the submitted project locations.
+				Once all locations are valid, the "SEND EMAIL" button will appear blue. You can than send an email with the validated data to your project counterpart.<br/><br/>
+					<strong>Important:</strong>
+					<ul>
+						<li>Make sure to attach the latest validated (and valid) version to the email.</li>
+						<li>In case of any problems or feature request create an issue at our <a href={"https://github.com/mapme-initiative/project_location_model/issues"}>Github-Issue-Tracker</a>.</li>
+					</ul></p>
 				<FormControl variant="outlined" size="small">
 					<InputLabel id="lang-select-label">Language</InputLabel>
 					<Select
@@ -255,13 +259,19 @@ export default function FileValidator(): React.ReactElement {
 						<MenuItem value="fr">Francais</MenuItem>
 					</Select>
 				</FormControl>
-				<input
-					key={fileInputKey}
-					type="file"
-					accept=".json,.csv,.xlsx,.geojson"
+				<FileUpload
+					sx={{ml: 1.5}}
 					onChange={handleFileUpload}
+					title={"File upload"}
 				/>
-				<SendMailButton isEnabled={enableEMailButton} {...(inProNumbers ? { inProNumbers: [...inProNumbers] } : {})} />
+				<SendMailButton sx={{ml: 1.5}} isEnabled={enableEMailButton} {...(inProNumbers ? { inProNumbers: [...inProNumbers] } : {})} />
+				<Button
+					sx={{ml: 1.5}}
+					variant={"contained"}
+					disabled={!enableEMailButton}
+					onClick={downloadProcessed}
+				>Download GeoJSON</Button>
+				<Button target="_blank" href={"https://github.com/mapme-initiative/project_location_model/issues"} sx={{ml: 1.5}}  variant={"contained"} color={"error"}>report Issue</Button>
 			</header>
 
 
@@ -269,18 +279,29 @@ export default function FileValidator(): React.ReactElement {
 			{/* ____________________ Validation Result ____________________ */}
 
 			{validationResult && (
-				<div className='file_validator_validation_result'>
-					<h3>Validation Result</h3>
-					<pre>{validationResult}</pre>
-				</div>
-			)}
-
+			<div
+				style={{
+					...(validationResult.toLowerCase().includes("data is valid!") ? { backgroundColor: "rgba(0, 128, 0, 0.2)" } : {}),
+					...(validationResult.toLowerCase().includes("error") ? { backgroundColor: "rgba(128, 0, 0, 0.2)" } : {}),
+					maxHeight: '360px',
+					overflowY: 'auto',
+					overflowX: 'hidden',
+					marginTop: '0.5rem',
+					padding: '0.2rem',
+					border: '1px solid #ccc',
+					borderRadius: '4px',
+				}}
+			>
+				<h3>Validation Result</h3>
+				<p>{validationResult}</p>
+			</div>
+		)}
 
 
 			{/* ____________________ Map ____________________ */}
 
-			<div className='file_validator_map'>
-				<MapComponent geoJsonData={geoJsonDataWrap} />
+			<div className='file_validator_map' style={{ height: '400px' }}>
+    			<MapComponent geoJsonData={geoJsonDataWrap} />
 			</div>
 
 
@@ -292,11 +313,6 @@ export default function FileValidator(): React.ReactElement {
 				<button
 					onClick={resetMap}
 				>Reset Map</button>
-
-				<button
-					onClick={downloadProcessed}
-				>Download GeoJSON</button>
-
 			</div>
 
 

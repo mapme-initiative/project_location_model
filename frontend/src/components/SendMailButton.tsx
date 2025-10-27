@@ -1,9 +1,10 @@
-import { Button } from "@mui/material";
+import {Button, SxProps} from "@mui/material";
 import SendIcon from '@mui/icons-material/Send';
 
 type SendMailButtonProps = {
     isEnabled: boolean;
     inProNumbers?: Array<string>
+    sx?: SxProps
 }
 
 export default function SendMailButton(props: Readonly<SendMailButtonProps>) {
@@ -16,7 +17,7 @@ export default function SendMailButton(props: Readonly<SendMailButtonProps>) {
     return (
         <Button variant="contained"
             disabled={!props.isEnabled}
-            endIcon={<SendIcon />} sx={{ ml: 2 }}
+            endIcon={<SendIcon />} sx={props.sx}
             onClick={generateMailTo} >
             Send Email
         </Button>
