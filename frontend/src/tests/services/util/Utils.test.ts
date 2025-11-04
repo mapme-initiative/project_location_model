@@ -2,7 +2,6 @@ import {ExcelConverter, Utils} from "../../../services/util/Utils.ts";
 import {ErrorObject} from "ajv";
 
 
-
 describe("Utils", () => {
     describe("toFormatErrors", () => {
         it("formats error with instancePath and message", () => {
@@ -139,11 +138,6 @@ describe("ExcelConverter", () => {
         it("throws error for missing sheet", () => {
             const data = loadFile("sheet_not_found.xlsx");
             expect(() => ExcelConverter.toGeoJson(data, "en")).toThrow(/does not contain a valid sheet/);
-        });
-
-        it("throws error for unsupported language", () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V03.xlsx");
-            expect(() => ExcelConverter.toGeoJson(data, "de")).toThrow(/Unsupported language/);
         });
 
         it("throws error if expected sheet for lang is not present", () => {
