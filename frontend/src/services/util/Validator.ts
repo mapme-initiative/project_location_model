@@ -1,13 +1,14 @@
 import Ajv, {AsyncValidateFunction, ValidateFunction} from "ajv";
 import addFormats from "ajv-formats";
 import {SupportedLangs} from "./Utils.ts";
-import {HttpClientSchema} from "../httpclient/HttpClientSchema.ts";
+import {HttpGitClientSchema} from "../httpclient/HttpGitClientSchema.ts";
 import {BaseHttpClientSchema} from "../httpclient/BaseHttpClientSchema.ts";
 import {MockHttpClientSchema} from "../../tests/services/httpclient/MockHttpClientSchema.ts";
+import {HttpLocalClientSchema} from "../httpclient/HttpLocalClientSchema.ts";
 
 export class ValidatorFactory {
     // Standard Instanz für produktiven Code (HttpClientSchema)
-    private static readonly defaultInstance = new ValidatorFactory(new HttpClientSchema());
+    private static readonly defaultInstance = new ValidatorFactory(new HttpLocalClientSchema());
 
     // Optionaler Zugriff für Legacy Code: weiterhin statische Nutzung möglich
     public static getProjectValidator(lang: SupportedLangs) {
@@ -15,7 +16,8 @@ export class ValidatorFactory {
     }
 
     // Convenience Factory Methods
-    public static createWithHttp(): ValidatorFactory { return new ValidatorFactory(new HttpClientSchema()); }
+    public static createWithLocal(): ValidatorFactory { return new ValidatorFactory(new HttpLocalClientSchema()); }
+    public static createWithGit(): ValidatorFactory { return new ValidatorFactory(new HttpGitClientSchema()); }
     public static createWithMock(): ValidatorFactory { return new ValidatorFactory(new MockHttpClientSchema()); }
 
     constructor(private readonly schemaClient: BaseHttpClientSchema) {}
@@ -24,7 +26,7 @@ export class ValidatorFactory {
         const ajv = new Ajv({allErrors: true});
         schemas.forEach(s => ajv.addSchema(s));
         addFormats(ajv);
-        return ajv.getSchema("feature_project_schema.json");
+        return ajv.getSchema("feature_project_schema");
     }
 
     public getProjectValidator(lang: SupportedLangs): Promise<ValidateFunction<unknown> | AsyncValidateFunction<unknown>> {

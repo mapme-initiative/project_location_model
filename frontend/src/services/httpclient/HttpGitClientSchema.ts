@@ -5,13 +5,13 @@ import {SupportedLangs} from "../util/Utils.ts";
 /**
  * Lädt Schema Dateien von GitHub (raw URLs) abhängig von der Sprache.
  */
-export class HttpClientSchema extends BaseHttpClientSchema {
+export class HttpGitClientSchema extends BaseHttpClientSchema {
     private static readonly branch = "250729-french-schema";
     private static readonly URL_PREFIX = "https://raw.githubusercontent.com/openkfw/open-geodata-model/refs/heads";
 
     private static schemaUrls(lang: SupportedLangs): string[] {
-        const b = HttpClientSchema.branch;
-        const U = HttpClientSchema.URL_PREFIX;
+        const b = HttpGitClientSchema.branch;
+        const U = HttpGitClientSchema.URL_PREFIX;
         if (lang === "en") {
             return [
                 `${U}/${b}/references/sector_location_schema_en.json`,
@@ -29,7 +29,7 @@ export class HttpClientSchema extends BaseHttpClientSchema {
     }
 
     async getSchema(lang: SupportedLangs): Promise<any[]> {
-        const urls = HttpClientSchema.schemaUrls(lang);
+        const urls = HttpGitClientSchema.schemaUrls(lang);
         const fetches = urls.map(url => fetch(url).then(r => r.json()));
         return Promise.all(fetches);
     }
