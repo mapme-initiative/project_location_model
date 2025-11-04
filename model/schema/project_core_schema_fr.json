@@ -53,7 +53,7 @@
             "description": "lore ipsum",
             "$ref": "sector_schema_fr.json"
         },
-        "locationTypeName": {
+        "location_type ": {
             "description": "Champ de présélection du type de localisation Secteurs / Sous-secteurs. / type de localisation le plus approprié.",
             "$ref": "location_type_name_schema_fr.json"
         },

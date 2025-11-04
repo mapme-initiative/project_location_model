@@ -13,14 +13,16 @@ export class MockHttpClientSchema extends BaseHttpClientSchema {
     async getSchema(lang: SupportedLangs): Promise<any[]> {
         const baseDir = path.resolve(process.cwd(), "../model/schema");
         const filesEn = [
-            "sector_location_schema_en.json",
             "dac5_schema.json",
+            "location_type_name_schema_en.json",
+            "sector_schema_en.json",
             "feature_project_schema.json",
             "project_core_schema_en.json"
         ];
         const filesFr = [
-            "sector_location_schema_fr.json",
             "dac5_schema.json",
+            "location_type_name_schema_fr.json",
+            "sector_schema_fr.json",
             "feature_project_schema.json",
             "project_core_schema_fr.json"
         ];
@@ -28,4 +30,3 @@ export class MockHttpClientSchema extends BaseHttpClientSchema {
         return files.map(f => this.readJson(path.join(baseDir, f)));
     }
 }
-

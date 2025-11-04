@@ -38,6 +38,9 @@ export class ValidatorFactory {
 
         return this.schemaClient.getSchema(lang)
             .then(schemas => this.buildAjvWithSchemas(schemas))
-            .catch(() => Promise.reject(new Error("can not load validation schemas - please check your internet connection")));
+            .catch((e) => {
+                console.error(e)
+                return Promise.reject(new Error("can not load validation schemas - please check your internet connection"))
+            });
     }
 }

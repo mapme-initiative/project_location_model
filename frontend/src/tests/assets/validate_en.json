@@ -13,10 +13,8 @@
     "plannedOrActualEndDate": "2024-12-13",
     "plannedOrActualStartDate": "2019-12-13",
     "dateOfDataCollection": "2020-02-01",
-    "sector_location": {
-      "sector": "Energy",
-      "location_type": "hydropower plant / dam"
-    },
+    "sector": "Energy",
+    "location_type": "hydropower plant / dam",
     "schemeVersion": "1.0",
     "projectAcronym": "HRE II",
     "dataOwner": "Integration Consulting",
