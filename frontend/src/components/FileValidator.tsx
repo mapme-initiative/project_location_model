@@ -8,16 +8,16 @@ import MapComponent from "./MapComponent";
 import {transformCsvToLocation,} from "../services/util/FileConversionMethods";
 import {saveAs} from 'file-saver';
 import {
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    FormControl,
-    InputLabel,
-    MenuItem,
-    Select
+	Button,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogContentText,
+	DialogTitle,
+	FormControl,
+	InputLabel,
+	MenuItem,
+	Select
 } from '@mui/material';
 
 import SendMailButton from "./SendMailButton.tsx";
@@ -170,7 +170,7 @@ export default function FileValidator(): React.ReactElement {
 
 	const validateParsedData = (data: any[]) => {
 		ValidatorFactory
-			.createWithHttp()
+			.createWithLocal()
 			.getProjectValidator(lang)
 			.then((validateProjectFunction) => {
 				const validateProject = validateProjectFunction
