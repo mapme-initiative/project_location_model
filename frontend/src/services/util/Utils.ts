@@ -1,5 +1,6 @@
-import {ErrorObject} from "ajv";
+import {AsyncValidateFunction, ErrorObject, ValidateFunction} from "ajv";
 import * as xlsx from "xlsx";
+import {WorkBook} from "xlsx";
 import {excelDateToString, safeParseFloat} from "./FileConversionMethods.tsx";
 
 export enum OGMFileTypes {
@@ -107,20 +108,21 @@ export class Utils {
         return `Error${path}${message}`;
     }
 
+    public static validateProject:  ValidateFunction<unknown> | AsyncValidateFunction<unknown> | ((data: unknown) => boolean | Promise<boolean>);
     /**
      * iterator function - correct execution: .map(Utils.toFeature, {validateProject})
      * @param feature
      */
     public static toFeature(feature) {
-        const validateProject = this.validateProject;
+        // support passing via thisArg or using static property
+        const validateProject = (this && (this as any).validateProject) || Utils.validateProject;
         const isValid = validateProject ? validateProject(feature) : false;
-        if (isValid) {
-            return feature; // Include only valid features
-        } else {
-            console.log("Invalid feature:", feature);
-            // Optionally log or handle invalid features here
-            return null;
+        // if async promise returned, we cannot await in sync map; treat promise resolving truthy later by returning feature only if already boolean true
+        if (typeof isValid === 'boolean') {
+            return isValid ? feature : null;
         }
+        // Promise case: assume validation will resolve to boolean; optimistic include only if promise already settled true (not typical). Otherwise exclude.
+        return null;
     }
 
     public static notNull(value) {
