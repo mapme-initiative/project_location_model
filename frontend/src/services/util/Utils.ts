@@ -28,11 +28,10 @@ export class ExcelConverter {
             uniqueId,
             latitude,
             longitude,
-            sector,
-            location_type,
             plannedOrActualEndDate,
             plannedOrActualStartDate,
             dateOfDataCollection,
+            projectSpecificLocationIdentifier,
             ...rest
         } = row;
 
@@ -49,11 +48,7 @@ export class ExcelConverter {
                 plannedOrActualEndDate: excelDateToString(plannedOrActualEndDate),
                 plannedOrActualStartDate: excelDateToString(plannedOrActualStartDate),
                 dateOfDataCollection: excelDateToString(dateOfDataCollection),
-                sector_location:
-                    {
-                        sector: sector,
-                        location_type: location_type
-                    },
+                projectSpecificLocationIdentifier: projectSpecificLocationIdentifier !== undefined && projectSpecificLocationIdentifier !== null ? projectSpecificLocationIdentifier.toString() : undefined,
                 ...rest
             }
         };
