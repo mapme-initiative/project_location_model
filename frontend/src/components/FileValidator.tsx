@@ -26,7 +26,7 @@ import {ValidatorFactory} from "../services/util/Validator.ts";
 import FileUpload from "./FileUpload.tsx";
 
 export default function FileValidator(): React.ReactElement {
-	const [lang, setLang] = useState<SupportedLangs>('fr');
+	const [lang, setLang] = useState<SupportedLangs>('en');
 	const [validationResult, setValidationResult] = useState<string | null>(null);
 	const [geoJsonDataWrap, setGeoJsonDataWrap] = useState<any>(null);
 	const [enableEMailButton, setEnableEMailButton] = useState<boolean>(false);
@@ -243,10 +243,11 @@ export default function FileValidator(): React.ReactElement {
 					The Location Validator is an open-source tool designed to validate project location data against the specifications of <a target={"_blank"} href={"google.de"}>KfWs Open Project Location Model</a>. The validator accepts both Excel and GeoJSON files as input data. It identifies errors that need to be addressed, such as missing values in mandatory fields or incorrect formats for specific entries (e.g., dates not provided in the correct format). <br/><br/>Errors should be corrected in the original file using Excel or GIS software, after which the files can be re-evaluated using this tool. Additionally, you can utilize the map feature within the tool to assess the geographic accuracy of the submitted project locations.
 				Once all locations are valid, the "SEND EMAIL" button will appear blue. You can than send an email with the validated data to your project counterpart.<br/><br/>
 					<strong>Important:</strong>
+				</p>
 					<ul>
 						<li>Make sure to attach the latest validated (and valid) version to the email.</li>
 						<li>In case of any problems or feature request create an issue at our <a href={"https://github.com/mapme-initiative/project_location_model/issues"}>Github-Issue-Tracker</a>.</li>
-					</ul></p>
+					</ul>
 				<FormControl variant="outlined" size="small">
 					<InputLabel id="lang-select-label">Language</InputLabel>
 					<Select
