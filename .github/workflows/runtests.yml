@@ -1,10 +1,15 @@
 name: "run tests"
 on:
   pull_request:
-    types: [opened, reopened]
+    branches:
+      - main
 
 jobs:
     test:
+        permissions:
+          contents: write # for schemas
+          pull-requests: write
+          checks: write
         runs-on: ubuntu-latest
         steps:
           - name: Checkout
@@ -16,4 +21,11 @@ jobs:
           - name: Install Dependencies
             run: cd frontend && npm ci
           - name: test
-            run: cd frontend && npm test -- --watchAll=false
+            run: cd frontend && npx jest --ci --json --coverage --testLocationInResults --outputFile=report.json && cat package.json
+
+          - name: Jest coverage report
+            uses: ArtiomTr/jest-coverage-report-action@v2.3.1
+            with:
+              test-script: npx jest --ci --json --coverage --testLocationInResults --outputFile=report.json
+              working-directory: ./frontend
+              github-token: ${{ secrets.GITHUB_TOKEN }}
