@@ -20,7 +20,9 @@ If exact locations cannot be determined at this stage, approximate location shou
 
 ## Are Project Locations confidential?
 
-Exact coordinates of Project Locations remain confidential and are not published publicly. Location data in fragile and conflict contexts are treated with extra diligence.
+The Excel template must be submitted without containing any personal data or any data that could be linked to individual persons, such as houses of private households. Exact coordinates of Project Locations remain confidential and are not published publicly by KfW. 
+
+Location data in fragile and conflict contexts are treated with extra diligence. If an exact Project Location is not to be collected or communicated due to security reasons, select the option "approximate (security)" in the "Geographic Exactness" column. Furthermore, by indicating "yes" in the column "Publishing restrictions due to security reasons" associated to a Project Location, it will be omitted from publicly available reports.
 
 ## How was the model developed with respect to IATI standards?
 The Project Locations Model is mostly based on a proposal by the International Aid Transparency Initiative (IATI) to collect project specific geo-information, which is used by international development organizations. It harmonizes and coordinates development projects across multiple donor agencies. 
@@ -32,4 +34,5 @@ Approximate locations should be used if onf of the following circumstances apply
 1. An exact project location has not (yet) been specified or is not yet known (e.g., the exact project locations have not yet been determined) -> then choose the option: approximate (yet unknown).
 2. An exact project location is not to be collected or communicated due to security reasons (e.g., in a conflict zone) -> then choose the option: approximate (security).
 3. The target location(s) is/are one or more administrative units, such as a district, a province, or the entire country or group of countries (e.g., an entire country for a Policy-Based-Lending project or a number of districts in a country for a decentralization project) -> then choose the option: approximate (admin unit).
+
 

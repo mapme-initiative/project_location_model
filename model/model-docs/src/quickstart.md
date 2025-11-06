@@ -24,4 +24,3 @@ This guide is structured in the following way:
  
  - [Annex 1: Excel templates](./annex1.md): For data collection in English or French
  - [Annex 2: JSON schema](./annex2.md): A description of the **datamodel** based on a json-schema
-
