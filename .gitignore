@@ -24,3 +24,4 @@ coverage
 *.sln
 *.sw?
 .env
+frontend/public/flatschema

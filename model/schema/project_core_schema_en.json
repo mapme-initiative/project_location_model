@@ -4,7 +4,8 @@
     "description": "This schema defines the structure of the project location model. It is used to validate the project location data provided by the KfW counterpart.",
     "properties": {
         "schemeVersion": {
-            "const": "1.0"
+            "type": "string",
+            "enum": ["1.0"]
         },
         "activityDescriptionGeneral": {
             "description": "A short description of the main project activity in this location.",
@@ -49,9 +50,13 @@
             ],
             "type": "string"
         },
-        "sector_location": {
+        "sector": {
+            "description": "lore ipsum",
+            "$ref": "sector_schema_en.json"
+        },
+        "location_type": {
             "description": "Sectoral / cross-sectoral location type preselection field. / most appropriate location type",
-            "$ref": "sector_location_schema_en.json"
+            "$ref": "location_type_name_schema_en.json"
         },
         "kfwProjectNoINPRO": {
             "description": "Every project location in the FC Geodata Model must be assigned to its respective KfW project number, which is provided by KfW.",
@@ -94,7 +99,8 @@
             "type": "string"
         },
         "projectSpecificLocationIdentifier": {
-            "description": "If the location or activity has a project-specific identifier, it can be entered here."
+            "description": "If the location or activity has a project-specific identifier, it can be entered here.",
+            "type": "string"
         },
         "publishingRestrictions": {
             "description": "Indicates if this information is collected in fragile regions and should therefore be omitted from publicly available reports.",
@@ -121,9 +127,10 @@
         "plannedOrActualStartDate",
         "plannedOrActualEndDate",
         "activityDescriptionGeneral",
-        "sector_location",
         "dac5PurposeCode",
         "geographicExactness",
+        "location_type",
+        "sector",
         "schemeVersion"
     ],
     "title": "Project Location Model",

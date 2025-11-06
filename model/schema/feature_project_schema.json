@@ -1,6 +1,6 @@
 {
   "title": "GeoJSON Feature",
-  "$id": "feature_project_schema.json",
+  "$id": "feature_project_schema",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "description": "Main Schema with geometries and [project_core_schema_en.md](project_core_schema_en.md) or [project_core_schema_fr.md](project_core_schema_fr.md)  properties. It is built hierarchially and is represented as Feature - a known Geojson Format. <br> In the properties are all the project information which is separated from the geometry.",
   "type": "object",

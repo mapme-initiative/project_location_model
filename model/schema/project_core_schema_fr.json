@@ -49,9 +49,13 @@
             ],
             "type": "string"
         },
-        "sector_location": {
+        "sector": {
+            "description": "lore ipsum",
+            "$ref": "sector_schema_fr.json"
+        },
+        "location_type ": {
             "description": "Champ de présélection du type de localisation Secteurs / Sous-secteurs. / type de localisation le plus approprié.",
-            "$ref": "sector_location_schema_fr.json"
+            "$ref": "location_type_name_schema_fr.json"
         },
         "kfwProjectNoINPRO": {
             "description": "Chaque site du projet dans le modèle de géodonnées FC doit être attribué à son numéro de projet KfW respectif, qui est fourni par la KfW.",
@@ -121,9 +125,10 @@
         "plannedOrActualStartDate",
         "plannedOrActualEndDate",
         "activityDescriptionGeneral",
-        "sector_location",
         "dac5PurposeCode",
         "geographicExactness",
+        "location_type",
+        "sector",
         "schemeVersion"
     ],
     "title": "Modèle de Localisation des Projets",
