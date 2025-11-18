@@ -1,7 +1,7 @@
 # Summary
 
 - [Introduction](./introduction.md)
-- [OGM Validator](./chapter_1.md)
+- [Project Location Validator](./chapter_1.md)
 - [Quick Start Guide](./quickstart.md)
 - [Data Collection Guidelines](./collection.md)
 - [Validation Process](./validation.md)

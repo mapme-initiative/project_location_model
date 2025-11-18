@@ -48,12 +48,12 @@ The documentation is automatically built and deployed to GitHub Pages via the Gi
 
 1. Generates schema documentation from JSON schemas
 2. Builds the mdbook documentation
-3. Builds the React OGM validator
+3. Builds the React Project Location validator
 4. Combines everything into a single GitHub Pages deployment
 
 The deployed site includes:
 - Main documentation at the root
-- OGM validator at `/ogm-validator/`
+- Project Location validator at `/project-location-validator/`
 
 ## Adding New Content
 
