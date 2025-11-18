@@ -25,3 +25,17 @@ coverage
 *.sw?
 .env
 frontend/public/flatschema
+
+# Python/Poetry
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Documentation builds
+model/model-docs/book/
+model/model-docs/src/schemas/

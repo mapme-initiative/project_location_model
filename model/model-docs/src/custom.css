@@ -1,0 +1,17 @@
+/* Custom CSS for documentation */
+.content {
+    max-width: 1200px;
+}
+
+.schema-docs {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 1em;
+    margin: 1em 0;
+}
+
+.schema-title {
+    color: #2c5e8a;
+    border-bottom: 2px solid #2c5e8a;
+    padding-bottom: 0.5em;
+}

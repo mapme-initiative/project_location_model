@@ -1,2 +1,2 @@
-# Einführung
-Hier ist gehts zum ogm-validator: <a href="ogm-validator/index.html" target="_blank">ogm-validator</a>
+# Project Location Validator
+Acess to our Project Location Validator: <a href="project-location-validator/index.html" target="_blank">project-location-validator</a>
