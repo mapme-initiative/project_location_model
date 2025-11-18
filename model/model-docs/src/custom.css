@@ -1,8 +1,12 @@
-/* Custom CSS for documentation */
-.content {
-    max-width: 1200px;
-}
+/* Source - https://stackoverflow.com/a
+ Posted by Sandman, modified by community. See post 'Timeline' for change history
+ Retrieved 2025-11-18, License - CC BY-SA 4.0
+ https://stackoverflow.com/questions/73555768/how-to-change-width-of-content-area-in-mdbook
+*/
 
+:root {
+    --content-max-width: max(750px, 90%);
+}
 .schema-docs {
     border: 1px solid #ddd;
     border-radius: 4px;
