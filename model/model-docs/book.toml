@@ -9,3 +9,4 @@ additional-css = ["src/custom.css"]
 git-repository-url = "https://github.com/mapme-initiative/project_location_model"
 
 [preprocessor.links]
+[preprocessor.embed]

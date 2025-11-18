@@ -40,14 +40,11 @@ jobs:
       - name: Generate Schema Documentation
         run: |
           poetry run python generate_schema_docs.py
-          
-      - name: Setup mdbook
-        uses: peaceiris/actions-mdbook@v2
-        with:
-          mdbook-version: 'latest'
-          
-      - name: Build mdbook
+
+      - uses: dtolnay/rust-toolchain@stable
+      - name: mdbook install & build
         run: |
+          cargo install mdbook mdbook-embed
           cd model/model-docs
           mdbook build
           
