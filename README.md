@@ -2,7 +2,7 @@
 
 This repository contains all necesary information to collect georeferenced project locations according to the Project Location Model for Development cooperation used by the KfW Development Bank. 
 
-You can find the documentation in a user-friendly format [here](https://mapme-initiative.github.io/project_location_model/schemas/dac5_schema.html). 
+You can find the documentation in a user-friendly format [here](https://mapme-initiative.github.io/project_location_model/). 
 
 The documentation specifies everything you need to know to collect data. It also contains a validator tool that can be used before sumbissions. You can find the validator tool [here](https://mapme-initiative.github.io/project_location_model/project-location-validator/index.html). 
 
