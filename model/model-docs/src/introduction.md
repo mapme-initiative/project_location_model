@@ -14,6 +14,6 @@ A Project Location is a set of one or more features that are part of a financial
 
 The Project Location Model is a structured data model, developed by the KfW Development Bank, to collect location-specific information about projects supported by international development cooperation. The model is in use and continues to be developed by KfW, together with their peers and partners. 
 
-The model, in Excel format, is currently available for download in [English](https://raw.githubusercontent.com/openkfw/open-geodata-model/main/Project_Location_Data_Template_EN_V03.xlsx) and [French](https://raw.githubusercontent.com/openkfw/open-geodata-model/main/Project_Location_Data_Template_FR_V03.xlsx). The model can be used in combination with a KML file. 
+The model, in Excel format, is currently available for download in English and French, see also [Excel Templates](./annex1.md). The model can be used in combination with a Geojson file. 
 
-Data related to specific project locations should be collected with respect to the outlined requirements. Please see FAQ for more information about International Aid Transparency Initiative (IATI) standards and enhancements particular to KfW's operational needs. 
+Data related to specific project locations should be collected with respect to the outlined requirements. Please see FAQ for more information about the International Aid Transparency Initiative (IATI) standards and enhancements particular to KfW's operational needs. 
