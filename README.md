@@ -1,10 +1,15 @@
-# Open Geodata Model Validator
-This is a simple website which validates if an excel/geodata-file is valid according to the Open Geodata Model. 
+# Project Location Model
 
-In case you're more interested in the Open Geodata Model specification you'll find it [here](https://github.com/openkfw/open-geodata-model)
+This repository contains all necesary information to collect georeferenced project locations according to the Project Location Model for Development cooperation used by the KfW Development Bank. 
 
-The Validator - Tool itself can be accessed [here](https://mapme-initiative.github.io/ogm-validator/)
+You can find the documentation in a user-friendly format [here]([url](https://mapme-initiative.github.io/project_location_model/schemas/dac5_schema.html)) 
 
+The documentation specifies everything you need to know to collect data. It also contains a validator tool that can be used before sumbissions. You can find the validator tool [here]([url](https://mapme-initiative.github.io/project_location_model/project-location-validator/index.html)). 
+
+In case you need support or in case you would like to propose improvements to the model, the validator tool or the repository, feel free to create an issue or fork the repository and createa an upstream pull request.
+
+
+# Validator tool (for developers)
 ## Install
 GUI 
 ```bash
@@ -51,8 +56,8 @@ npm -v
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/mapme-initiative/ogm-validator;
-cd ogm-validator;
+git clone https://github.com/mapme-initiative/project_location_model/;
+cd project_location_model;
 ```
 
 
