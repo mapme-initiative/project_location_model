@@ -1,29 +1,48 @@
-import {describe, expect, it} from "@jest/globals";
-import {ValidatorFactory} from "../../../services/util/Validator.ts";
-import {BaseHttpClientSchema} from "../../../services/httpclient/BaseHttpClientSchema.ts";
+import { describe, expect, it, jest, beforeEach } from "@jest/globals";
+import { getProjectValidator } from "../../../services/util/Validator.ts";
 import validateDataEng from "../../assets/validate_en.json";
 import validateDataFr from "../../assets/validate_data_fr.json";
+import * as fs from "fs";
+import * as path from "path";
 
+// Mock fetch for testing - simulates loading from public/schemas/
+const mockFetch = (url: string) => {
+    const schemaDir = path.resolve(process.cwd(), "../model/schema");
 
-// Hilfsklasse um einen Fehler beim Laden zu simulieren
-class FailingMockSchema extends BaseHttpClientSchema {
-    getSchema(): Promise<any[]> { return Promise.reject(new Error("io")); }
-}
+    let schemaPath: string;
+    if (url.includes('feature_project_schema.json')) {
+        schemaPath = path.join(schemaDir, 'feature_project_schema.json');
+    } else if (url.includes('project_core_schema_en.json')) {
+        schemaPath = path.join(schemaDir, 'project_core_schema_en.json');
+    } else if (url.includes('project_core_schema_fr.json')) {
+        schemaPath = path.join(schemaDir, 'project_core_schema_fr.json');
+    } else {
+        return Promise.resolve({
+            ok: false,
+            statusText: 'Not Found'
+        } as Response);
+    }
 
-// Helper um ValidatorFactory Instanz mit gewünschtem SchemaClient zu bekommen
-const factoryWithMock = () => ValidatorFactory.createWithMock();
-const factoryWithFailing = () => new ValidatorFactory(new FailingMockSchema());
+    const schema = JSON.parse(fs.readFileSync(schemaPath, "utf-8"));
 
+    return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(schema)
+    } as Response);
+};
 
-// Wir lesen reale Dateien über MockHttpClientSchema -> keine fetch Mocks mehr nötig
-
-describe("ValidatorFactory (DI) getProjectValidator", () => {
+describe("getProjectValidator", () => {
+    beforeEach(() => {
+        // Reset fetch mock before each test
+        jest.clearAllMocks();
+    });
 
     it("returns a validator function for 'en' and validates correctly", async () => {
-        const validator = await factoryWithMock().getProjectValidator("en") as any;
+        global.fetch = jest.fn((url) => mockFetch(url as string)) as any;
+
+        const validator = await getProjectValidator("en") as any;
         expect(typeof validator).toBe("function");
-        // feature_project_schema.json verlangt required [foo]; unsere lokale Datei muss das widerspiegeln
-        // Falls nicht vorhanden, wird Test entsprechend angepasst
+
         const valid = validator(validateDataEng);
         const invalid = validator({});
         expect(valid).toBe(true);
@@ -31,34 +50,35 @@ describe("ValidatorFactory (DI) getProjectValidator", () => {
     });
 
     it("returns a validator function for 'fr' and validates correctly", async () => {
-        const validator = await factoryWithMock().getProjectValidator("fr") as any;
+        global.fetch = jest.fn((url) => mockFetch(url as string)) as any;
+
+        const validator = await getProjectValidator("fr") as any;
         expect(typeof validator).toBe("function");
+
         const valid = validator(validateDataFr);
         const invalid = validator({});
         expect(valid).toBe(true);
         expect(invalid).toBe(false);
     });
 
-    it("propagates failure as rejected promise (simulated) for 'en'", async () => {
-        await expect(factoryWithFailing().getProjectValidator("en") as Promise<any>)
+    it("rejects when fetch fails", async () => {
+        global.fetch = jest.fn(() => Promise.reject(new Error("Network error"))) as any;
+
+        await expect(getProjectValidator("en"))
             .rejects
-            .toThrow("can not load validation schemas - please check your internet connection");
+            .toThrow("Cannot load validation schema - please check your setup");
     });
 
-    it("propagates failure as rejected promise (simulated) for 'fr'", async () => {
-        await expect(factoryWithFailing().getProjectValidator("fr") as Promise<any>)
-            .rejects
-            .toThrow("can not load validation schemas - please check your internet connection");
-    });
-
-    it("rejects promise for unsupported language", async () => {
-        await expect(factoryWithMock().getProjectValidator("de" as any))
+    it("rejects for unsupported language", async () => {
+        await expect(getProjectValidator("de" as any))
             .rejects
             .toThrow("Unsupported language: de");
     });
 
     it("validator fails when required field missing", async () => {
-        const validator = await factoryWithMock().getProjectValidator("en") as any;
+        global.fetch = jest.fn((url) => mockFetch(url as string)) as any;
+
+        const validator = await getProjectValidator("en") as any;
         const ok = validator(validateDataEng);
         const bad = validator({ other: "x" });
         expect(ok).toBe(true);

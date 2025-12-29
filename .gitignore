@@ -25,6 +25,7 @@ coverage
 *.sw?
 .env
 frontend/public/flatschema
+frontend/public/schemas
 
 # Python/Poetry
 .venv/
