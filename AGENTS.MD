@@ -10,8 +10,7 @@ This document provides comprehensive guidance for AI agents and developers worki
 2. [Build, Test, and Development](#build-test-and-development)
 3. [Coding Style & Naming](#coding-style--naming)
 4. [Testing Guidelines](#testing-guidelines)
-5. [Commit & PR Guidelines](#commit--pr-guidelines)
-6. [Notes & Tips](#notes--tips)
+5. [Notes & Tips](#notes--tips)
 
 ---
 
@@ -57,9 +56,6 @@ project_location_model/
 JSON Schema definitions for project location data:
 - `project_core_schema_en.json` / `project_core_schema_fr.json` - Core project schemas (multilingual)
 - `feature_project_schema.json` - Feature-based project schema
-- `sector_schema_en.json` / `sector_schema_fr.json` - Sector schemas
-- `location_type_name_schema_en.json` / `location_type_name_schema_fr.json` - Location type schemas
-- `dac5_schema.json` - DAC5 sector codes
 
 #### 2. **Frontend Validator** (`frontend/`)
 
@@ -76,7 +72,6 @@ JSON Schema definitions for project location data:
 - `FileValidator.tsx` - Main validation interface
 - `Validator.ts` - Core validation logic using AJV
 - `Utils.ts` - Conversion and formatting utilities
-- `MockHttpClientSchema.ts` - Testing mock for schema loading
 
 #### 3. **Documentation System**
 
@@ -243,7 +238,6 @@ cp -R frontend/dist/* model/model-docs/book/project-location-validator/
 - **Utilities/Services**: camelCase with `.ts` extension
   - `validator.ts`
   - `utils.ts`
-  - `httpClient.ts`
 
 - **Tests**: Same name as source with `.test.ts(x)` suffix
   - `Validator.test.ts`
@@ -252,7 +246,7 @@ cp -R frontend/dist/* model/model-docs/book/project-location-validator/
 #### **Code Style**
 
 ```typescript
-// ✅ Good: Descriptive names, type annotations
+// Good: Descriptive names, type annotations
 interface ValidationResult {
     isValid: boolean;
     errors: ValidationError[];
@@ -266,13 +260,13 @@ function validateProjectLocation(
     // Implementation
 }
 
-// ✅ Good: Functional approach, clear logic
+// Good: Functional approach, clear logic
 const validLocations = locations
     .filter(loc => loc.geometry !== null)
     .map(transformLocation)
     .filter(isValidLocation);
 
-// ❌ Avoid: Unclear names, missing types
+// Avoid: Unclear names, missing types
 function check(data: any): any {
     // ...
 }
@@ -281,7 +275,7 @@ function check(data: any): any {
 #### **React Components**
 
 ```typescript
-// ✅ Good: Functional component with proper typing
+// Good: Functional component with proper typing
 interface FileValidatorProps {
     language: 'en' | 'fr';
     onValidationComplete: (results: ValidationResult[]) => void;
@@ -321,7 +315,7 @@ export const FileValidator: React.FC<FileValidatorProps> = ({
 Follow PEP 8 with these specifics:
 
 ```python
-# ✅ Good: Clear function names, type hints
+# Good: Clear function names, type hints
 from pathlib import Path
 from typing import List, Dict
 
@@ -341,7 +335,7 @@ def generate_schema_docs(
     # Implementation
     pass
 
-# ✅ Good: Descriptive variable names
+# Good: Descriptive variable names
 schema_files = list(schema_dir.glob("*.json"))
 output_files: List[Path] = []
 
@@ -407,27 +401,27 @@ describe("MyComponent", () => {
 
 1. **Use descriptive test names**
    ```typescript
-   // ✅ Good
+   // Good
    it("should display validation errors when file format is invalid", () => {});
    
-   // ❌ Avoid
+   // Avoid
    it("test validation", () => {});
    ```
 
 2. **Test user behavior, not implementation**
    ```typescript
-   // ✅ Good: Test what user sees
+   // Good: Test what user sees
    expect(screen.getByText("File is valid")).toBeInTheDocument();
    
-   // ❌ Avoid: Test internal state
+   // Avoid: Test internal state
    expect(component.state.isValid).toBe(true);
    ```
 
-3. **Mock external dependencies**
+3. **Mock external dependencies when needed**
    ```typescript
-   // Mock HTTP client for schema loading
-   jest.mock("../../services/httpclient/HttpClientSchema", () => ({
-       HttpClientSchema: MockHttpClientSchema
+   // Example: Mock external services
+   jest.mock("../../services/externalService", () => ({
+       ExternalService: MockExternalService
    }));
    ```
 
@@ -474,149 +468,6 @@ Before submitting a PR:
 
 ---
 
-## Commit & PR Guidelines
-
-### Commit Messages
-
-Follow **Conventional Commits** specification:
-
-```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
-```
-
-#### **Types**
-
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting, no logic change)
-- `refactor`: Code refactoring
-- `test`: Adding or updating tests
-- `chore`: Maintenance tasks (dependencies, build config)
-- `perf`: Performance improvements
-
-#### **Examples**
-
-```bash
-# Simple commit
-git commit -m "feat(validator): add support for GeoPackage format"
-
-# Detailed commit
-git commit -m "fix(schema): correct validation for negative coordinates
-
-The schema was incorrectly rejecting valid negative longitude values
-in the Southern Hemisphere. Updated min/max constraints.
-
-Fixes #123"
-
-# Breaking change
-git commit -m "feat(api)!: change validation response structure
-
-BREAKING CHANGE: ValidationResult now returns errors as array instead of object
-```
-
-### Pull Request Process
-
-#### **1. Before Creating PR**
-
-```bash
-# Create feature branch
-git checkout -b feature/my-feature-name
-# or
-git checkout -b fix/issue-description
-
-# Make changes and commit
-git add .
-git commit -m "feat: add new feature"
-
-# Run tests locally
-cd frontend && npm test
-
-# Run linter
-npm run lint
-
-# Build to verify
-npm run build
-```
-
-#### **2. PR Title & Description**
-
-**Title**: Follow commit message format
-```
-feat(frontend): add batch validation for multiple files
-```
-
-**Description Template**:
-```markdown
-## Description
-Brief description of changes
-
-## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-- [ ] Documentation update
-
-## Testing
-- [ ] Unit tests pass
-- [ ] Manual testing completed
-- [ ] Coverage maintained/improved
-
-## Related Issues
-Fixes #123
-Relates to #456
-
-## Screenshots (if applicable)
-[Add screenshots for UI changes]
-
-## Checklist
-- [ ] Code follows project style guidelines
-- [ ] Self-review completed
-- [ ] Comments added for complex logic
-- [ ] Documentation updated
-- [ ] No new warnings generated
-```
-
-#### **3. PR Review Process**
-
-1. **Automated Checks**:
-   - Jest tests must pass
-   - Coverage report generated
-   - No security vulnerabilities
-   - Build succeeds
-
-2. **Code Review**:
-   - At least 1 approval required
-   - Address all comments
-   - Resolve merge conflicts
-
-3. **Merge Strategy**:
-   - Squash and merge (preferred for feature branches)
-   - Merge commit (for multi-developer features)
-
-#### **4. Branch Naming**
-
-```
-feature/<short-description>    # New features
-fix/<issue-or-description>     # Bug fixes
-docs/<description>             # Documentation
-refactor/<description>         # Refactoring
-test/<description>             # Test improvements
-chore/<description>            # Maintenance
-```
-
-Examples:
-- `feature/multilingual-validation`
-- `fix/coordinate-parsing-error`
-- `docs/update-installation-guide`
-- `refactor/simplify-validator-logic`
-
----
-
 ## Notes & Tips
 
 ### Development Best Practices
@@ -640,7 +491,7 @@ Examples:
 When adding new text:
 
 ```typescript
-// ✅ Good: Prepare for i18n
+// Good: Prepare for i18n
 const messages = {
     en: {
         validation_error: "Validation failed",
@@ -685,12 +536,7 @@ mdbook --version
 
 #### **Issue: Tests fail with "Schema not found"**
 
-**Solution**: Mock schema loading or ensure test fixtures exist
-```typescript
-jest.mock("../services/httpclient/HttpClientSchema", () => ({
-    HttpClientSchema: MockHttpClientSchema
-}));
-```
+**Solution**: Ensure schema files are in the correct location (`frontend/public/schemas/`) and accessible during tests
 
 ### Useful Commands Reference
 
@@ -709,12 +555,6 @@ npm test                              # Run tests
 npm run lint                          # Run linter
 npm run build                         # Production build (copies schemas automatically)
 npm run preview                       # Preview production build
-
-# Git
-git checkout -b feature/my-feature    # Create feature branch
-git add .                             # Stage changes
-git commit -m "feat: message"         # Commit with message
-git push origin feature/my-feature    # Push to remote
 ```
 
 ### Debugging Tips
@@ -756,13 +596,10 @@ git push origin feature/my-feature    # Push to remote
 
 This guide provides AI agents and developers with comprehensive information to:
 
-- ✅ Understand the project structure and architecture
-- ✅ Set up development environments correctly
-- ✅ Follow coding standards and best practices
-- ✅ Write effective tests with good coverage
-- ✅ Create meaningful commits and pull requests
-- ✅ Debug common issues efficiently
+- Understand the project structure and architecture
+- Set up development environments correctly
+- Follow coding standards and best practices
+- Write effective tests with good coverage
+- Debug common issues efficiently
 
 For user-facing documentation, refer to [README.md](README.md) and the [live documentation](https://mapme-initiative.github.io/project_location_model/).
-
-**Questions or suggestions?** Open an issue or pull request!
