@@ -66,7 +66,7 @@ describe("getProjectValidator", () => {
 
         await expect(getProjectValidator("en"))
             .rejects
-            .toThrow("Cannot load validation schema - please check your setup");
+            .toThrow("Cannot load validation schemas - please check your setup");
     });
 
     it("rejects for unsupported language", async () => {
