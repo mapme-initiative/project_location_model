@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "cschemes": "cd .. && node ./frontend/deployment-scripts/flattenSchemas.js",
-    "dev": "vite --mode development",
-    "build": "npm run cschemes && tsc -b && vite build --mode production",
+    "copy-schemas": "mkdir -p public/schemas && cp ../model/schema/feature_project_schema.json ../model/schema/project_core_schema_*.json public/schemas/",
+    "dev": "npm run copy-schemas && vite --mode development",
+    "build": "npm run copy-schemas && tsc -b && vite build --mode production",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "predeploy": "npm run build",
@@ -14,7 +14,11 @@
     "test": "jest"
   },
   "jest": {
-    "coverageReporters": ["text", "json-summary", "json"],
+    "coverageReporters": [
+      "text",
+      "json-summary",
+      "json"
+    ],
     "coverageDirectory": "coverage"
   },
   "dependencies": {
