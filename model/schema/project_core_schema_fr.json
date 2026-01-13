@@ -4,7 +4,10 @@
     "description": "Ce schéma définit la structure du modèle de sites des projet. Il sert à valider les données de sites du projet fournies par le partenaire KfW.",
     "properties": {
         "schemeVersion": {
-            "const": "1.0"
+            "type": "string",
+            "enum": [
+                "1.0"
+            ]
         },
         "activityDescriptionGeneral": {
             "description": "Une brève description de l'activité principale du projet sur ce site.",
