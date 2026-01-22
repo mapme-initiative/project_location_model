@@ -1,5 +1,9 @@
-body {
+html {
+  height: 100%;
+  overflow: hidden;
+}
 
+body {
   --popup-background-color: rgb(130, 130, 130, .5);
   --background-color: rgb(250, 250, 250);
   --box-shadow-color: rgb(180, 180, 180);
@@ -7,27 +11,62 @@ body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
+  height: 100%;
+  overflow: hidden;
+  width: 100vw;
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100vh;
+  align-items: flex-start;
   background-color: #f0f0f0;
   background-image: url('https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2024/02/earth_from_space_cote_d_ivoire/25482274-1-eng-GB/Earth_from_Space_Cote_d_Ivoire.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+// Ensure root React div doesn't constrain width
+#root {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100% !important;
 }
 
 /* Scoped style for FileValidator component to reset the background */
 .file_validator {
-  background-color: var(--background-color); // Apply a simple background color
-  background-image: none; // Remove background image
-  width: 100%; // Responsive width, takes up 100% of the available space
-  max-width: 1000px; // Maximum width constraint for larger screens
-  justify-content: center;
-  align-items: center;
-  margin: 0;
-  padding: 100px;
-  height: 100vh;
+  background-color: var(--background-color);
+  background-image: none;
+  width: 80% !important;
+  max-width: 1400px !important;
+  min-width: 320px !important;
+  margin: 20px auto 80px auto !important;
+  padding: 30px 40px !important;
+  min-height: calc(100vh - 120px);
+  max-height: calc(100vh - 100px);
   border-radius: 10px;
   box-shadow: 0 4px 8px var(--box-shadow-color);
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+
+  // Custom scrollbar styling
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(240, 240, 240, 0.5);
+    border-radius: 5px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(180, 180, 180, 0.8);
+    border-radius: 5px;
+
+    &:hover {
+      background: rgba(150, 150, 150, 0.9);
+    }
+  }
 }
 
 .container {

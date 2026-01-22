@@ -13,21 +13,21 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<PageType>('validator');
 
   return (
-    <Box sx={{ pb: 7, height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ flex: 1, overflow: 'auto' }}>
+    <Box sx={{ pb: 7, minHeight: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', width: '100vw', maxWidth: '100vw', position: 'relative' }}>
+      <Box sx={{ flex: 1, overflow: 'visible', width: '100vw', maxWidth: '100vw', position: 'relative' }}>
         {currentPage === 'validator' && <FileValidator />}
         {currentPage === 'geoserver' && (
           <GeoServerEditor onNavigateHome={() => setCurrentPage('validator')} />
         )}
       </Box>
-      <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
+      <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000 }} elevation={3}>
         <BottomNavigation
           showLabels
           value={currentPage}
           onChange={(_, newValue) => setCurrentPage(newValue)}
         >
           <BottomNavigationAction
-            label="Datei-Validator"
+            label="File Validator"
             value="validator"
             icon={<UploadFileIcon />}
           />

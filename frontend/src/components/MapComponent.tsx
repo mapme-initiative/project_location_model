@@ -176,10 +176,7 @@ export default MapComponent;
 
 const mapContainerStyle: React.CSSProperties = {
   position: "relative",
-  display: "flex",
-  alignItems: "left",
-  width: "100%", // Full width to match text description
-  maxWidth: "100%", // Remove previous constraint of 1280px to use full width
-  aspectRatio: "16 / 13.5", // Adjusted from 16/9 to make it 50% taller
-  margin: "20px 0",
+  width: "100%",
+  height: "100%",
+  minHeight: "400px",
 };

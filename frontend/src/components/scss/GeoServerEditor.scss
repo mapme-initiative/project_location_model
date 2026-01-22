@@ -1,27 +1,64 @@
+// GeoServerEditor - EXACT copy of FileValidator styling for consistency
 .geoserver-editor {
-    background-color: #f5f5f5;
-    padding: 16px !important;
-    max-width: 100% !important;
-    width: 100%;
+    // EXACTLY matching .file_validator from App.scss
+    background-color: var(--background-color);
+    background-image: none;
+    width: 80% !important;
+    max-width: 1400px !important;
+    min-width: 320px !important;
+    margin: 20px auto 80px auto !important;
+    padding: 30px 40px !important;
+    min-height: calc(100vh - 120px);
+    max-height: calc(100vh - 100px);
+    border-radius: 10px;
+    box-shadow: 0 4px 8px var(--box-shadow-color);
     box-sizing: border-box;
+    overflow-y: auto;
     overflow-x: hidden;
+    position: relative;
 
+    // Custom scrollbar styling - matching FileValidator
+    &::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: rgba(240, 240, 240, 0.5);
+        border-radius: 5px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba(180, 180, 180, 0.8);
+        border-radius: 5px;
+
+        &:hover {
+            background: rgba(150, 150, 150, 0.9);
+        }
+    }
+
+    // Header styling
     .editor-header {
         background-color: #1976d2;
         color: white;
-        padding: 12px 20px;
+        padding: 16px 24px;
         border-radius: 8px;
-        margin-bottom: 16px;
+        margin-bottom: 20px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
 
         .MuiTypography-root {
             color: white;
             font-weight: 600;
+            font-size: 1.5rem;
         }
 
         .MuiButton-outlined {
             color: white;
             border-color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
 
             &:hover {
                 border-color: white;
@@ -40,18 +77,22 @@
         .MuiChip-colorSuccess {
             background-color: #4caf50;
             color: white;
+            font-weight: 500;
         }
     }
 
+    // Text field styling
     .MuiTextField-root {
         background-color: #fff;
         border-radius: 4px;
     }
 
+    // Input section - WFS URL and Geocoding
     .input-section {
         display: flex;
         gap: 16px;
-        margin-bottom: 16px;
+        margin-bottom: 20px;
+        flex-shrink: 0;
 
         .MuiTextField-root,
         .MuiAutocomplete-root {
@@ -59,18 +100,21 @@
         }
     }
 
+    // Map container - fixed height, always visible
     .map-container {
         height: 450px;
         min-height: 400px;
         width: 100%;
-        max-width: 100%;
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         position: relative;
         background-color: #e0e0e0;
+        flex-shrink: 0;
+        margin-bottom: 20px;
     }
 
+    // Leaflet container
     .leaflet-container {
         height: 100% !important;
         width: 100% !important;
@@ -79,7 +123,11 @@
         z-index: 1;
     }
 
+    // Data grid styling
     .MuiDataGrid-root {
+        border-radius: 8px;
+        overflow: hidden;
+
         .MuiDataGrid-cell {
             &:focus {
                 outline: none;
@@ -115,11 +163,20 @@
     }
 
     .MuiAlert-standardInfo {
-        margin-bottom: 16px;
+        margin-bottom: 20px;
+        flex-shrink: 0;
+        border-radius: 8px;
+    }
+
+    // Feature table wrapper
+    .MuiPaper-root {
+        flex-shrink: 0;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 }
 
-/* Map marker popup styles */
+// Map marker popup styles
 .leaflet-popup-content-wrapper {
     border-radius: 8px;
     box-shadow: 0 3px 14px rgba(0, 0, 0, 0.15);
@@ -130,7 +187,7 @@
     line-height: 1.4;
 }
 
-/* Custom scrollbar for the data grid */
+// Custom scrollbar for the data grid
 .geoserver-editor .MuiDataGrid-virtualScroller {
     &::-webkit-scrollbar {
         width: 8px;
@@ -152,55 +209,22 @@
     }
 }
 
-/* Loading overlay */
-.loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(255, 255, 255, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-/* Feature highlight on map */
-.feature-highlight {
-    animation: pulse 1s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0% {
-        stroke-width: 2;
-        opacity: 0.8;
-    }
-
-    50% {
-        stroke-width: 4;
-        opacity: 1;
-    }
-
-    100% {
-        stroke-width: 2;
-        opacity: 0.8;
-    }
-}
-
-/* Add to layer button */
+// Add to layer section
 .add-to-layer-section {
     display: flex;
     gap: 12px;
     align-items: center;
-    margin-bottom: 16px;
-    padding: 12px 16px;
+    margin-bottom: 20px;
+    padding: 16px 20px;
     background-color: #e3f2fd;
     border-radius: 8px;
     border: 1px solid #90caf9;
+    flex-shrink: 0;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 
     .MuiButton-contained {
         white-space: nowrap;
+        font-weight: 500;
     }
 
     .geocoded-info {
@@ -210,12 +234,22 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        font-weight: 500;
     }
 }
 
-/* Responsive adjustments */
+// Responsive adjustments - keep 80% at all breakpoints for consistency
+@media (max-width: 1200px) {
+    .geoserver-editor {
+        width: 80% !important;
+    }
+}
+
 @media (max-width: 900px) {
     .geoserver-editor {
+        width: 80% !important;
+        padding: 30px 40px !important;
+
         .input-section {
             flex-direction: column;
         }
@@ -233,16 +267,19 @@
 
 @media (max-width: 600px) {
     .geoserver-editor {
-        padding: 8px !important;
+        width: 100% !important;
+        margin: 10px auto 70px auto !important;
+        padding: 16px !important;
+        border-radius: 0;
 
         .editor-header {
-            padding: 10px 12px;
+            padding: 12px 16px;
             flex-wrap: wrap;
             gap: 8px;
-        }
 
-        .MuiTypography-h5 {
-            font-size: 1.25rem;
+            .MuiTypography-root {
+                font-size: 1.25rem;
+            }
         }
 
         .MuiButton-root {
@@ -250,8 +287,8 @@
         }
 
         .map-container {
-            height: 300px;
-            min-height: 250px;
+            height: 350px;
+            min-height: 300px;
         }
     }
 }

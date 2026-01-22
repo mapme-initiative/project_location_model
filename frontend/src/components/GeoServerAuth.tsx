@@ -147,18 +147,18 @@ export default function GeoServerAuth({
 
             // If all else fails, show error with instructions
             setError(
-                'Automatische Authentifizierung fehlgeschlagen. ' +
-                'Bitte verwenden Sie den Tab "Access Token" und geben Sie einen Token manuell ein.\n\n' +
-                'So erhalten Sie einen Access Token:\n' +
-                '1. Loggen Sie sich im Browser bei GeoNode ein\n' +
-                '2. Öffnen Sie die Entwicklertools (F12)\n' +
-                '3. Gehen Sie zu Network > eine Anfrage > Headers > Cookie\n' +
-                '4. Kopieren Sie den access_token Wert'
+                'Automatic authentication failed. ' +
+                'Please use the "Access Token" tab and enter a token manually.\n\n' +
+                'How to get an Access Token:\n' +
+                '1. Log in to GeoNode in your browser\n' +
+                '2. Open the Developer Tools (F12)\n' +
+                '3. Go to Network > any request > Headers > Cookie\n' +
+                '4. Copy the access_token value'
             );
         } catch (err) {
             setError(
-                `Verbindungsfehler: ${err instanceof Error ? err.message : 'Unbekannter Fehler'}. ` +
-                'Bitte prüfen Sie die Server-URL und versuchen Sie es erneut.'
+                `Connection error: ${err instanceof Error ? err.message : 'Unknown error'}. ` +
+                'Please check the server URL and try again.'
             );
         } finally {
             setLoading(false);
@@ -168,11 +168,11 @@ export default function GeoServerAuth({
     // Use manual access token
     const useAccessToken = useCallback(() => {
         if (!accessToken.trim()) {
-            setError('Bitte geben Sie einen Access Token ein.');
+            setError('Please enter an Access Token.');
             return;
         }
         if (!serverUrl.trim()) {
-            setError('Bitte geben Sie eine Server-URL ein.');
+            setError('Please enter a Server URL.');
             return;
         }
 
@@ -190,7 +190,7 @@ export default function GeoServerAuth({
 
     return (
         <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-            <DialogTitle>GeoServer / GeoNode Authentifizierung</DialogTitle>
+            <DialogTitle>GeoServer / GeoNode Authentication</DialogTitle>
             <DialogContent>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tabValue} onChange={handleTabChange}>
@@ -216,14 +216,14 @@ export default function GeoServerAuth({
                     value={serverUrl}
                     onChange={(e) => setServerUrl(e.target.value)}
                     sx={{ mt: 2 }}
-                    helperText="Basis-URL des GeoServer oder GeoNode (z.B. https://example.com)"
+                    helperText="Base URL of GeoServer or GeoNode (e.g. https://example.com)"
                 />
 
                 <FormControl fullWidth sx={{ mt: 2 }}>
-                    <InputLabel>Server Typ</InputLabel>
+                    <InputLabel>Server Type</InputLabel>
                     <Select
                         value={serverType}
-                        label="Server Typ"
+                        label="Server Type"
                         onChange={(e) => setServerType(e.target.value as 'geonode' | 'geoserver')}
                     >
                         <MenuItem value="geonode">GeoNode</MenuItem>
@@ -233,11 +233,11 @@ export default function GeoServerAuth({
 
                 <TabPanel value={tabValue} index={0}>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        Geben Sie Ihre GeoNode/GeoServer Anmeldedaten ein.
+                        Enter your GeoNode/GeoServer credentials.
                     </Typography>
                     <TextField
                         margin="dense"
-                        label="Benutzername"
+                        label="Username"
                         fullWidth
                         variant="outlined"
                         value={username}
@@ -245,7 +245,7 @@ export default function GeoServerAuth({
                     />
                     <TextField
                         margin="dense"
-                        label="Passwort"
+                        label="Password"
                         type="password"
                         fullWidth
                         variant="outlined"
@@ -261,16 +261,16 @@ export default function GeoServerAuth({
 
                 <TabPanel value={tabValue} index={1}>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        Falls die automatische Anmeldung nicht funktioniert, können Sie einen Access Token manuell eingeben.
+                        If automatic login does not work, you can enter an Access Token manually.
                     </Typography>
                     <Alert severity="info" sx={{ mb: 2 }}>
                         <Typography variant="body2">
-                            <strong>So erhalten Sie einen Access Token:</strong><br />
-                            1. Loggen Sie sich im Browser bei GeoNode/GeoServer ein<br />
-                            2. Öffnen Sie die Entwicklertools (F12)<br />
-                            3. Gehen Sie zu Network Tab<br />
-                            4. Laden Sie eine beliebige WFS-Anfrage<br />
-                            5. Suchen Sie in den Request Headers nach "access_token" oder kopieren Sie den Cookie-Wert
+                            <strong>How to get an Access Token:</strong><br />
+                            1. Log in to GeoNode/GeoServer in your browser<br />
+                            2. Open the Developer Tools (F12)<br />
+                            3. Go to the Network tab<br />
+                            4. Make any WFS request<br />
+                            5. Look for "access_token" in the Request Headers or copy the Cookie value
                         </Typography>
                     </Alert>
                     <TextField
@@ -292,7 +292,7 @@ export default function GeoServerAuth({
                 </TabPanel>
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleClose}>Abbrechen</Button>
+                <Button onClick={handleClose}>Cancel</Button>
                 {tabValue === 0 ? (
                     <Button
                         onClick={loginToGeoNode}
@@ -300,7 +300,7 @@ export default function GeoServerAuth({
                         disabled={loading || !username || !password || !serverUrl}
                         startIcon={loading ? <CircularProgress size={16} /> : null}
                     >
-                        {loading ? 'Anmelden...' : 'Anmelden'}
+                        {loading ? 'Logging in...' : 'Login'}
                     </Button>
                 ) : (
                     <Button
@@ -308,7 +308,7 @@ export default function GeoServerAuth({
                         variant="contained"
                         disabled={!accessToken || !serverUrl}
                     >
-                        Token verwenden
+                        Use Token
                     </Button>
                 )}
             </DialogActions>

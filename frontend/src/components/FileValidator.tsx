@@ -308,7 +308,7 @@ export default function FileValidator(): React.ReactElement {
 
 		{/* ____________________ Map ____________________ */}
 
-		<div className='file_validator_map' style={{ height: '400px' }}>
+		<div className='file_validator_map'>
 			<MapComponent geoJsonData={geoJsonDataWrap} />
 		</div>
 

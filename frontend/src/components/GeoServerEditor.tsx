@@ -5,7 +5,6 @@ import {
     TextField,
     Box,
     CircularProgress,
-    Container,
     Typography,
     Dialog,
     DialogTitle,
@@ -290,13 +289,13 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
     const handleAuthenticated = useCallback((token: string, url: string) => {
         setAccessToken(token);
         setServerUrl(url);
-        showSnackbar('Erfolgreich authentifiziert!', 'success');
+        showSnackbar('Successfully authenticated!', 'success');
     }, [showSnackbar]);
 
     const handleLogout = useCallback(() => {
         setAccessToken(null);
         setServerUrl('');
-        showSnackbar('Abgemeldet', 'info');
+        showSnackbar('Logged out', 'info');
     }, [showSnackbar]);
 
     // Load WFS data
@@ -306,13 +305,13 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
         // Validate outputFormat
         const urlLower = wfsUrl.toLowerCase();
         if (!urlLower.includes('outputformat')) {
-            showError('Der Parameter outputFormat fehlt. Es wird nur JSON unterstützt.');
+            showError('The outputFormat parameter is missing. Only JSON is supported.');
             return;
         }
 
         const outputFormatMatch = urlLower.match(/outputformat=([^&]*)/);
         if (!outputFormatMatch || !outputFormatMatch[1].includes('json')) {
-            showError('Ungültiges Ausgabeformat. Es wird nur JSON unterstützt.');
+            showError('Invalid output format. Only JSON is supported.');
             return;
         }
 
@@ -414,10 +413,10 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
                         errorMessage += `WFS Error: ${exceptionTextMatch[1].trim()}`;
                     }
 
-                    errorMessage += '\n\nMögliche Lösungen:\n';
-                    errorMessage += '• Authentifizierung erforderlich - bitte melden Sie sich an\n';
-                    errorMessage += '• Prüfen Sie den Layer-Namen (typeName)\n';
-                    errorMessage += '• Verwenden Sie outputFormat=application/json';
+                    errorMessage += '\n\nPossible solutions:\n';
+                    errorMessage += '• Authentication required - please log in\n';
+                    errorMessage += '• Check the layer name (typeName)\n';
+                    errorMessage += '• Use outputFormat=application/json';
                 } else {
                     errorMessage += `Content-Type: ${contentType || 'unknown'}`;
                 }
@@ -458,7 +457,7 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
                             sortable: false,
                             filterable: false,
                             renderCell: (params) => (
-                                <Tooltip title="Zur Geometrie zoomen">
+                                <Tooltip title="Zoom to geometry">
                                     <IconButton
                                         size="small"
                                         onClick={() => {
@@ -479,7 +478,7 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
                             sortable: false,
                             filterable: false,
                             renderCell: (params) => (
-                                <Tooltip title="Geometrie mit Geocoding-Ergebnis ersetzen">
+                                <Tooltip title="Replace geometry with geocoding result">
                                     <IconButton
                                         size="small"
                                         onClick={() => {
@@ -504,17 +503,17 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
                     setWfsColumns(columns);
                 }
 
-                showSnackbar(`${data.features.length} Features geladen`, 'success');
+                showSnackbar(`${data.features.length} features loaded`, 'success');
             }
         } catch (error) {
             console.error('Error loading WFS data:', error);
 
             if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-                showError('CORS-Fehler: Der Server blockiert die Anfrage.');
+                showError('CORS error: The server is blocking the request.');
             } else if (error instanceof Error) {
-                showError(`Fehler beim Laden der WFS-Daten: ${error.message}`);
+                showError(`Error loading WFS data: ${error.message}`);
             } else {
-                showError('Fehler beim Laden der WFS-Daten.');
+                showError('Error loading WFS data.');
             }
         } finally {
             setWfsLoading(false);
@@ -529,12 +528,12 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
         isGeometryUpdate?: boolean
     ): Promise<boolean> => {
         if (!accessToken) {
-            showError('Bitte melden Sie sich an, um Änderungen zu speichern.');
+            showError('Please log in to save changes.');
             return false;
         }
 
         if (!wfsUrl || !wfsTypeName) {
-            showError('WFS-URL oder TypeName fehlt für die Transaktion.');
+            showError('WFS URL or TypeName is missing for the transaction.');
             return false;
         }
 
@@ -582,16 +581,16 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
             console.log('WFS-T Response:', responseText);
 
             if (responseText.includes('totalUpdated>1') || responseText.includes('totalUpdated="1"')) {
-                showSnackbar('Feature erfolgreich aktualisiert', 'success');
+                showSnackbar('Feature successfully updated', 'success');
                 return true;
             } else if (responseText.includes('Exception')) {
-                throw new Error('WFS-Server hat einen Fehler zurückgegeben');
+                throw new Error('WFS server returned an error');
             }
 
             return true;
         } catch (error) {
             console.error('WFS-T Error:', error);
-            showError(`Fehler beim Speichern: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`);
+            showError(`Error saving: ${error instanceof Error ? error.message : 'Unknown error'}`);
             return false;
         }
     }, [accessToken, wfsUrl, wfsTypeName, wfsNamespace, showError, showSnackbar]);
@@ -602,12 +601,12 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
         properties: Record<string, unknown> = {}
     ): Promise<boolean> => {
         if (!accessToken) {
-            showError('Bitte melden Sie sich an, um Features hinzuzufügen.');
+            showError('Please log in to add features.');
             return false;
         }
 
         if (!wfsUrl || !wfsTypeName) {
-            showError('Bitte laden Sie zuerst einen WFS-Layer.');
+            showError('Please load a WFS layer first.');
             return false;
         }
 
@@ -720,22 +719,22 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
             if (responseText.includes('<wfs:SUCCESS') || responseText.includes('SUCCESS/>') ||
                 responseText.includes('totalInserted>1') || responseText.includes('totalInserted="1"') ||
                 responseText.includes('InsertResults')) {
-                showSnackbar('Feature erfolgreich zum Layer hinzugefügt!', 'success');
+                showSnackbar('Feature successfully added to layer!', 'success');
                 // Reload the WFS data to show the new feature
                 await loadWfsData();
                 return true;
             } else if (responseText.includes('Exception')) {
                 const exceptionMatch = responseText.match(/<(?:ows:)?ExceptionText>(.*?)<\/(?:ows:)?ExceptionText>/s);
-                throw new Error(exceptionMatch ? exceptionMatch[1].trim() : 'WFS-Server hat einen Fehler zurückgegeben');
+                throw new Error(exceptionMatch ? exceptionMatch[1].trim() : 'WFS server returned an error');
             }
 
             // Assume success if no exception
-            showSnackbar('Feature hinzugefügt', 'success');
+            showSnackbar('Feature added', 'success');
             await loadWfsData();
             return true;
         } catch (error) {
             console.error('WFS-T Insert Error:', error);
-            showError(`Fehler beim Hinzufügen: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`);
+            showError(`Error adding feature: ${error instanceof Error ? error.message : 'Unknown error'}`);
             return false;
         }
     }, [accessToken, wfsUrl, wfsTypeName, wfsNamespace, wfsNamespaceUri, wfsGeomFieldName, wfsGeomType, showError, showSnackbar, loadWfsData]);
@@ -744,7 +743,7 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
     const handleAddToLayer = useCallback(async () => {
         const currentGeoJson = selectedGeoJsonRef.current;
         if (!currentGeoJson) {
-            showError('Bitte wählen Sie zuerst einen Ort aus der Geocoding-Suche aus.');
+            showError('Please select a location from the geocoding search first.');
             return;
         }
 
@@ -757,14 +756,14 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                 if (fc.features.length > 0) {
                     geometry = fc.features[0].geometry;
                 } else {
-                    showError('Keine Geometrie gefunden.');
+                    showError('No geometry found.');
                     return;
                 }
             } else {
                 geometry = currentGeoJson as Geometry;
             }
         } else {
-            showError('Ungültige Geocoding-Geometrie.');
+            showError('Invalid geocoding geometry.');
             return;
         }
 
@@ -775,13 +774,13 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
     const handleReplaceGeometry = useCallback(async (rowIndex: number) => {
         const currentGeoJson = selectedGeoJsonRef.current;
         if (!currentGeoJson) {
-            showError('Bitte wählen Sie zuerst einen Ort aus der Geocoding-Suche aus.');
+            showError('Please select a location from the geocoding search first.');
             return;
         }
 
         const currentWfsGeoJson = wfsGeoJsonRef.current;
         if (!currentWfsGeoJson) {
-            showError('Keine WFS-Daten geladen.');
+            showError('No WFS data loaded.');
             return;
         }
 
@@ -789,7 +788,7 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
         const featureId = feature?.id as string | undefined;
 
         if (!featureId) {
-            showError('Keine Feature-ID gefunden.');
+            showError('No feature ID found.');
             return;
         }
 
@@ -802,14 +801,14 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                 if (fc.features.length > 0) {
                     newGeometry = fc.features[0].geometry;
                 } else {
-                    showError('Keine Geometrie gefunden.');
+                    showError('No geometry found.');
                     return;
                 }
             } else {
                 newGeometry = currentGeoJson as Geometry;
             }
         } else {
-            showError('Ungültige Geocoding-Geometrie.');
+            showError('Invalid geocoding geometry.');
             return;
         }
 
@@ -912,7 +911,7 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
     }, []);
 
     return (
-        <Container maxWidth={false} className="geoserver-editor" sx={{ py: 2, minHeight: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="geoserver-editor">
             {/* Header */}
             <Box className="editor-header" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h5" component="h1">
@@ -922,11 +921,11 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                     {accessToken ? (
                         <>
                             <Chip
-                                label={`Verbunden: ${serverUrl ? new URL(serverUrl).host : 'Server'}`}
+                                label={`Connected: ${serverUrl ? new URL(serverUrl).host : 'Server'}`}
                                 color="success"
                                 size="small"
                             />
-                            <Tooltip title="Abmelden">
+                            <Tooltip title="Log out">
                                 <IconButton onClick={handleLogout} size="small">
                                     <LogoutIcon />
                                 </IconButton>
@@ -938,11 +937,11 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                             variant="outlined"
                             onClick={() => setAuthDialogOpen(true)}
                         >
-                            Anmelden
+                            Log in
                         </Button>
                     )}
                     {onNavigateHome && (
-                        <Tooltip title="Zurück zur Startseite">
+                        <Tooltip title="Back to home">
                             <IconButton onClick={onNavigateHome}>
                                 <HomeIcon />
                             </IconButton>
@@ -953,7 +952,7 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
 
             {!accessToken && (
                 <Alert severity="info" sx={{ mb: 2 }}>
-                    Melden Sie sich an, um Layer zu bearbeiten und Geometrien zu aktualisieren.
+                    Log in to edit layers and update geometries.
                 </Alert>
             )}
 
@@ -969,7 +968,7 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                     InputProps={{
                         endAdornment: wfsLoading ? <CircularProgress size={20} /> : null,
                     }}
-                    helperText="WFS GetFeature URL eingeben und Enter drücken zum Laden"
+                    helperText="Enter WFS GetFeature URL and press Enter to load"
                 />
                 <Autocomplete<NominatimResult, false, false, true>
                     freeSolo
@@ -989,8 +988,8 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                     renderInput={(params) => (
                         <TextField
                             {...params}
-                            label="Ort suchen (Geocoding)"
-                            placeholder="z.B. Berlin, Hamburg..."
+                            label="Search location (Geocoding)"
+                            placeholder="e.g. Berlin, Hamburg..."
                             InputProps={{
                                 ...params.InputProps,
                                 startAdornment: <AddLocationIcon sx={{ mr: 1, color: 'action.active' }} />,
@@ -1018,7 +1017,7 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
             {selectedGeoJson && wfsTypeName && (
                 <Box className="add-to-layer-section">
                     <Typography className="geocoded-info">
-                        <strong>Ausgewählt:</strong> {inputValue || 'Geocodierter Ort'}
+                        <strong>Selected:</strong> {inputValue || 'Geocoded location'}
                     </Typography>
                     <Button
                         variant="contained"
@@ -1027,7 +1026,7 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                         onClick={handleAddToLayer}
                         disabled={!accessToken || !wfsTypeName}
                     >
-                        Zum Layer hinzufügen
+                        Add to layer
                     </Button>
                 </Box>
             )}
@@ -1089,7 +1088,7 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                         processRowUpdate={processRowUpdate}
                         onProcessRowUpdateError={(error) => {
                             console.error('Row update error:', error);
-                            showError('Fehler beim Aktualisieren.');
+                            showError('Error updating.');
                         }}
                     />
                 </Paper>
@@ -1105,7 +1104,7 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
 
             {/* Error Dialog */}
             <Dialog open={dialogOpen} onClose={handleCloseDialog}>
-                <DialogTitle>Fehler</DialogTitle>
+                <DialogTitle>Error</DialogTitle>
                 <DialogContent>
                     <DialogContentText sx={{ whiteSpace: 'pre-line' }}>{dialogMessage}</DialogContentText>
                 </DialogContent>
@@ -1127,6 +1126,6 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                     {snackbarMessage}
                 </Alert>
             </Snackbar>
-        </Container>
+        </div>
     );
 }
