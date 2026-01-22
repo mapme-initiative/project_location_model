@@ -1,0 +1,257 @@
+.geoserver-editor {
+    background-color: #f5f5f5;
+    padding: 16px !important;
+    max-width: 100% !important;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+
+    .editor-header {
+        background-color: #1976d2;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+        .MuiTypography-root {
+            color: white;
+            font-weight: 600;
+        }
+
+        .MuiButton-outlined {
+            color: white;
+            border-color: rgba(255, 255, 255, 0.7);
+
+            &:hover {
+                border-color: white;
+                background-color: rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        .MuiIconButton-root {
+            color: white;
+
+            &:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        .MuiChip-colorSuccess {
+            background-color: #4caf50;
+            color: white;
+        }
+    }
+
+    .MuiTextField-root {
+        background-color: #fff;
+        border-radius: 4px;
+    }
+
+    .input-section {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 16px;
+
+        .MuiTextField-root,
+        .MuiAutocomplete-root {
+            flex: 1;
+        }
+    }
+
+    .map-container {
+        height: 450px;
+        min-height: 400px;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        position: relative;
+        background-color: #e0e0e0;
+    }
+
+    .leaflet-container {
+        height: 100% !important;
+        width: 100% !important;
+        border: none;
+        border-radius: 8px;
+        z-index: 1;
+    }
+
+    .MuiDataGrid-root {
+        .MuiDataGrid-cell {
+            &:focus {
+                outline: none;
+            }
+
+            &:focus-within {
+                outline: none;
+            }
+        }
+
+        .MuiDataGrid-columnHeader {
+            &:focus {
+                outline: none;
+            }
+
+            &:focus-within {
+                outline: none;
+            }
+        }
+
+        .MuiDataGrid-cellEditable {
+            cursor: pointer;
+
+            &:hover {
+                background-color: rgba(25, 118, 210, 0.04);
+            }
+        }
+    }
+
+    .MuiChip-colorSuccess {
+        background-color: #4caf50;
+        color: white;
+    }
+
+    .MuiAlert-standardInfo {
+        margin-bottom: 16px;
+    }
+}
+
+/* Map marker popup styles */
+.leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-popup-content {
+    margin: 12px;
+    line-height: 1.4;
+}
+
+/* Custom scrollbar for the data grid */
+.geoserver-editor .MuiDataGrid-virtualScroller {
+    &::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+
+        &:hover {
+            background: #a8a8a8;
+        }
+    }
+}
+
+/* Loading overlay */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Feature highlight on map */
+.feature-highlight {
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0% {
+        stroke-width: 2;
+        opacity: 0.8;
+    }
+
+    50% {
+        stroke-width: 4;
+        opacity: 1;
+    }
+
+    100% {
+        stroke-width: 2;
+        opacity: 0.8;
+    }
+}
+
+/* Add to layer button */
+.add-to-layer-section {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background-color: #e3f2fd;
+    border-radius: 8px;
+    border: 1px solid #90caf9;
+
+    .MuiButton-contained {
+        white-space: nowrap;
+    }
+
+    .geocoded-info {
+        flex: 1;
+        font-size: 0.875rem;
+        color: #1565c0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+    .geoserver-editor {
+        .input-section {
+            flex-direction: column;
+        }
+
+        .add-to-layer-section {
+            flex-direction: column;
+            align-items: stretch;
+
+            .geocoded-info {
+                white-space: normal;
+            }
+        }
+    }
+}
+
+@media (max-width: 600px) {
+    .geoserver-editor {
+        padding: 8px !important;
+
+        .editor-header {
+            padding: 10px 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .MuiTypography-h5 {
+            font-size: 1.25rem;
+        }
+
+        .MuiButton-root {
+            font-size: 0.75rem;
+        }
+
+        .map-container {
+            height: 300px;
+            min-height: 250px;
+        }
+    }
+}
