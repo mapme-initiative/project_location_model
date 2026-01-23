@@ -33,6 +33,8 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import HomeIcon from '@mui/icons-material/Home';
 import { MapContainer, TileLayer, GeoJSON, useMap, LayersControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.fullscreen/Control.FullScreen.css';
+import 'leaflet.fullscreen';
 import L from 'leaflet';
 import type { GeoJsonObject, FeatureCollection, Feature, Geometry, Position } from 'geojson';
 import GeoServerAuth, { DataModel } from './GeoServerAuth';
@@ -191,6 +193,23 @@ function ZoomToFeature({ geometry, trigger }: { geometry: Geometry | null; trigg
     return null;
 }
 
+// Component to fit map bounds to WFS GeoJSON
+function FitWfsBounds({ geoJson, trigger }: { geoJson: FeatureCollection | null; trigger: boolean }) {
+    const map = useMap();
+
+    useEffect(() => {
+        if (geoJson && trigger && geoJson.features.length > 0) {
+            const geoJsonLayer = L.geoJSON(geoJson);
+            const bounds = geoJsonLayer.getBounds();
+            if (bounds.isValid()) {
+                map.fitBounds(bounds, { padding: [50, 50] });
+            }
+        }
+    }, [geoJson, trigger, map]);
+
+    return null;
+}
+
 // Component to handle map resize and fix gray tiles
 function MapResizeHandler() {
     const map = useMap();
@@ -212,6 +231,27 @@ function MapResizeHandler() {
             clearTimeout(timer);
             window.removeEventListener('resize', handleResize);
         };
+    }, [map]);
+
+    return null;
+}
+
+// Component to add fullscreen control
+function FullscreenControl() {
+    const map = useMap();
+    const controlRef = useRef<L.Control | null>(null);
+
+    useEffect(() => {
+        // Add fullscreen control only once per map instance
+        if (!controlRef.current) {
+            const fullscreenControl = (L.control as any).fullscreen({ 
+                position: 'topright'
+            });
+            fullscreenControl.addTo(map);
+            controlRef.current = fullscreenControl;
+        }
+
+        // Don't remove on cleanup - keep it persistent for exit functionality
     }, [map]);
 
     return null;
@@ -274,6 +314,7 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
     // Zoom state
     const [zoomToGeometry, setZoomToGeometry] = useState<Geometry | null>(null);
     const [zoomTrigger, setZoomTrigger] = useState(0);
+    const [zoomToWfsBounds, setZoomToWfsBounds] = useState(false);
 
     // WFS-T state
     const [wfsTypeName, setWfsTypeName] = useState<string>('');
@@ -470,6 +511,15 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
             if (data.type === 'FeatureCollection' && data.features) {
                 setWfsGeoJson(data);
                 setWfsGeoJsonKey(prev => prev + 1);
+
+                // Auto-zoom to WFS bounds when data is loaded
+                if (data.features.length > 0) {
+                    // Reset trigger after a short delay to allow it to fire again if needed
+                    setTimeout(() => {
+                        setZoomToWfsBounds(true);
+                        setTimeout(() => setZoomToWfsBounds(false), 100);
+                    }, 100);
+                }
 
                 // Detect geometry type from first feature if not already set
                 if (data.features.length > 0 && data.features[0].geometry) {
@@ -1285,11 +1335,12 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
             {/* Map */}
             <Box className="map-container" sx={{ mb: 2 }}>
                 <MapContainer
-                    center={[51.1657, 10.4515]}
-                    zoom={6}
+                    center={[0, 0]}
+                    zoom={2}
                     style={{ height: '100%', width: '100%' }}
                 >
                     <MapResizeHandler />
+                    <FullscreenControl />
                     {/* Base Layers */}
                     <LayersControl position="topleft">
                         <LayersControl.BaseLayer name="GoogleStreets">
@@ -1333,6 +1384,7 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                     </LayersControl>
                     <FitBounds geoJson={selectedGeoJson} />
                     <ZoomToFeature geometry={zoomToGeometry} trigger={zoomTrigger} />
+                    <FitWfsBounds geoJson={wfsGeoJson} trigger={zoomToWfsBounds} />
                     {selectedGeoJson && (
                         <GeoJSON
                             key={geoJsonKey}
