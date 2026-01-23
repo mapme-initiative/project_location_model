@@ -31,11 +31,11 @@ export default function App() {
             value="validator"
             icon={<UploadFileIcon />}
           />
-          <BottomNavigationAction
-            label="GeoServer Editor"
-            value="geoserver"
-            icon={<MapIcon />}
-          />
+            <BottomNavigationAction
+              label="Location Mapper"
+              value="geoserver"
+              icon={<MapIcon />}
+            />
         </BottomNavigation>
       </Paper>
     </Box>

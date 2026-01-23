@@ -27,7 +27,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import LoginIcon from '@mui/icons-material/Login';
 import LogoutIcon from '@mui/icons-material/Logout';
 import HomeIcon from '@mui/icons-material/Home';
-import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, GeoJSON, useMap, LayersControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import type { GeoJsonObject, FeatureCollection, Feature, Geometry, Position } from 'geojson';
@@ -950,7 +950,7 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
             {/* Header */}
             <Box className="editor-header" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h5" component="h1">
-                    GeoServer Layer Editor
+                    Location Mapper
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     {accessToken ? (
@@ -1061,10 +1061,47 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                     style={{ height: '100%', width: '100%' }}
                 >
                     <MapResizeHandler />
-                    <TileLayer
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
+                    {/* Base Layers */}
+                    <LayersControl position="topleft">
+                        <LayersControl.BaseLayer name="GoogleStreets">
+                            <TileLayer
+                                url="https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+                                subdomains={["mt0", "mt1", "mt2", "mt3"]}
+                                maxZoom={20}
+                                attribution="Map data © GoogleMaps contributors"
+                            />
+                        </LayersControl.BaseLayer>
+                        <LayersControl.BaseLayer checked name="GoogleHybrid">
+                            <TileLayer
+                                url="https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}"
+                                subdomains={["mt0", "mt1", "mt2", "mt3"]}
+                                maxZoom={20}
+                                attribution="Map data © GoogleMaps contributors"
+                            />
+                        </LayersControl.BaseLayer>
+                        <LayersControl.BaseLayer name="GoogleEarth">
+                            <TileLayer
+                                url="https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+                                subdomains={["mt0", "mt1", "mt2", "mt3"]}
+                                maxZoom={20}
+                                attribution="Map data © GoogleMaps contributors"
+                            />
+                        </LayersControl.BaseLayer>
+                        <LayersControl.BaseLayer name="GoogleTerrain">
+                            <TileLayer
+                                url="https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}"
+                                subdomains={["mt0", "mt1", "mt2", "mt3"]}
+                                maxZoom={20}
+                                attribution="Map data © GoogleMaps contributors"
+                            />
+                        </LayersControl.BaseLayer>
+                        <LayersControl.BaseLayer name="OpenStreetMap">
+                            <TileLayer
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                attribution="© OpenStreetMap contributors"
+                            />
+                        </LayersControl.BaseLayer>
+                    </LayersControl>
                     <FitBounds geoJson={selectedGeoJson} />
                     <ZoomToFeature geometry={zoomToGeometry} trigger={zoomTrigger} />
                     {selectedGeoJson && (
