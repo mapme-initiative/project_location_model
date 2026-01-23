@@ -264,6 +264,7 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
     // Form dialog state
     const [formDialogOpen, setFormDialogOpen] = useState(false);
     const [formValues, setFormValues] = useState<Record<string, string>>({});
+    const [formExamples, setFormExamples] = useState<Record<string, string>>({});
 
     // Snackbar state
     const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -836,6 +837,23 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
         });
     }, [wfsColumns, wfsGeomFieldName]);
 
+    // Get all fields including ogc_fid for display
+    const getAllFormFields = useCallback(() => {
+        if (!wfsColumns || wfsColumns.length === 0) return [];
+        
+        return wfsColumns.filter(col => {
+            const field = col.field.toLowerCase();
+            return field !== 'actions' && 
+                   field !== 'replacegeom' && 
+                   field !== 'id' && 
+                   field !== 'featureid' &&
+                   field !== 'geometry' &&
+                   field !== 'the_geom' &&
+                   field !== 'geom' &&
+                   field !== wfsGeomFieldName.toLowerCase();
+        });
+    }, [wfsColumns, wfsGeomFieldName]);
+
     // Initialize form values when dialog opens
     const handleOpenFormDialog = useCallback(() => {
         const currentGeoJson = selectedGeoJsonRef.current;
@@ -844,27 +862,33 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
             return;
         }
 
-        // Initialize form values from existing features if available, or empty strings
-        const fields = getFormFields();
+        // Initialize form values and examples from existing features if available
+        const fields = getAllFormFields();
         const initialValues: Record<string, string> = {};
+        const exampleValues: Record<string, string> = {};
         
         if (wfsFeatures.length > 0) {
-            // Use first feature as template
+            // Use first feature as template for examples
             const templateFeature = wfsFeatures[0];
             fields.forEach(field => {
                 const value = templateFeature[field.field];
-                initialValues[field.field] = value !== null && value !== undefined ? String(value) : '';
+                const valueStr = value !== null && value !== undefined ? String(value) : '';
+                // Store as example, not as actual value
+                exampleValues[field.field] = valueStr;
+                initialValues[field.field] = '';
             });
         } else {
             // Initialize with empty strings
             fields.forEach(field => {
                 initialValues[field.field] = '';
+                exampleValues[field.field] = '';
             });
         }
 
         setFormValues(initialValues);
+        setFormExamples(exampleValues);
         setFormDialogOpen(true);
-    }, [getFormFields, wfsFeatures, showError]);
+    }, [getAllFormFields, wfsFeatures, showError]);
 
     // Handle form field change
     const handleFormFieldChange = useCallback((field: string, value: string) => {
@@ -906,6 +930,11 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
         // Convert based on schema types if available
         const properties: Record<string, unknown> = {};
         Object.keys(formValues).forEach(key => {
+            // Skip ogc_fid - it's system-generated
+            if (key.toLowerCase() === 'ogc_fid') {
+                return;
+            }
+            
             const fieldSchema = getFieldSchema(key);
             const value = formValues[key];
             
@@ -933,6 +962,7 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
         if (success) {
             setFormDialogOpen(false);
             setFormValues({});
+            setFormExamples({});
         }
     }, [selectedGeoJson, formValues, executeWfsInsert, showError]);
 
@@ -1366,91 +1396,139 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
             <Dialog open={formDialogOpen} onClose={() => setFormDialogOpen(false)} maxWidth="sm" fullWidth>
                 <DialogTitle>Add Feature to Layer</DialogTitle>
                 <DialogContent>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                         Enter the attribute values for the new feature. The geometry will be taken from the selected location.
                         {dataModel !== 'none' && schema && (
                             <span> Using {dataModel === 'en' ? 'English' : 'French'} data model.</span>
                         )}
                     </Typography>
-                    {getFormFields().map((field) => {
+                    {getAllFormFields().map((field, index) => {
+                        const isOgcFid = field.field.toLowerCase() === 'ogc_fid';
+                        if (isOgcFid) {
+                            // Special handling for ogc_fid - show but don't allow editing
+                            return (
+                                <Box key={field.field} sx={{ mt: index > 0 ? 3 : 0, mb: 2, pb: 2, borderBottom: '1px solid #e0e0e0' }}>
+                                    <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                                        {field.headerName || field.field}
+                                    </Typography>
+                                    <TextField
+                                        fullWidth
+                                        variant="outlined"
+                                        value="Will be generated by the system"
+                                        disabled
+                                        sx={{
+                                            '& .MuiInputBase-input': {
+                                                color: 'text.secondary',
+                                                fontStyle: 'italic'
+                                            }
+                                        }}
+                                    />
+                                </Box>
+                            );
+                        }
                         const fieldSchema = getFieldSchema(field.field);
                         const fieldType = fieldSchema?.type;
                         const hasEnum = fieldSchema?.enum && Array.isArray(fieldSchema.enum);
                         const isNumber = fieldType === 'number' || fieldType === 'integer';
                         const isDate = fieldSchema?.format === 'date' || fieldSchema?.format === 'date-time';
                         
+                        const exampleValue = formExamples[field.field] || '';
+                        const description = fieldSchema?.description || '';
+                        
                         // Generate input based on schema
                         if (hasEnum && fieldSchema.enum.length > 0) {
                             // Use Select for enum fields
                             return (
-                                <FormControl key={field.field} fullWidth sx={{ mt: 1 }}>
-                                    <InputLabel>{field.headerName || field.field}</InputLabel>
-                                    <Select
-                                        value={formValues[field.field] || ''}
-                                        label={field.headerName || field.field}
-                                        onChange={(e) => handleFormFieldChange(field.field, e.target.value)}
-                                    >
-                                        {fieldSchema.enum.map((enumValue: any) => (
-                                            <MenuItem key={String(enumValue)} value={String(enumValue)}>
-                                                {String(enumValue)}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
+                                <Box key={field.field} sx={{ mt: index > 0 ? 3 : 0, mb: 2, pb: 2, borderBottom: '1px solid #e0e0e0' }}>
+                                    {description && (
+                                        <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                                            {description}
+                                        </Typography>
+                                    )}
+                                    <FormControl fullWidth>
+                                        <InputLabel>{field.headerName || field.field}</InputLabel>
+                                        <Select
+                                            value={formValues[field.field] || ''}
+                                            label={field.headerName || field.field}
+                                            onChange={(e) => handleFormFieldChange(field.field, e.target.value)}
+                                        >
+                                            {fieldSchema.enum.map((enumValue: any) => (
+                                                <MenuItem key={String(enumValue)} value={String(enumValue)}>
+                                                    {String(enumValue)}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Box>
                             );
                         } else if (isNumber) {
                             // Use number input for numeric fields
                             return (
-                                <TextField
-                                    key={field.field}
-                                    margin="dense"
-                                    label={field.headerName || field.field}
-                                    fullWidth
-                                    variant="outlined"
-                                    type="number"
-                                    value={formValues[field.field] || ''}
-                                    onChange={(e) => handleFormFieldChange(field.field, e.target.value)}
-                                    sx={{ mt: 1 }}
-                                    helperText={fieldSchema?.description || ''}
-                                />
+                                <Box key={field.field} sx={{ mt: index > 0 ? 3 : 0, mb: 2, pb: 2, borderBottom: '1px solid #e0e0e0' }}>
+                                    {description && (
+                                        <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                                            {description}
+                                        </Typography>
+                                    )}
+                                    <TextField
+                                        margin="dense"
+                                        label={field.headerName || field.field}
+                                        fullWidth
+                                        variant="outlined"
+                                        type="number"
+                                        value={formValues[field.field] || ''}
+                                        onChange={(e) => handleFormFieldChange(field.field, e.target.value)}
+                                        placeholder={exampleValue || undefined}
+                                    />
+                                </Box>
                             );
                         } else if (isDate) {
                             // Use date input for date fields
                             return (
-                                <TextField
-                                    key={field.field}
-                                    margin="dense"
-                                    label={field.headerName || field.field}
-                                    fullWidth
-                                    variant="outlined"
-                                    type="date"
-                                    value={formValues[field.field] || ''}
-                                    onChange={(e) => handleFormFieldChange(field.field, e.target.value)}
-                                    sx={{ mt: 1 }}
-                                    InputLabelProps={{ shrink: true }}
-                                    helperText={fieldSchema?.description || ''}
-                                />
+                                <Box key={field.field} sx={{ mt: index > 0 ? 3 : 0, mb: 2, pb: 2, borderBottom: '1px solid #e0e0e0' }}>
+                                    {description && (
+                                        <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                                            {description}
+                                        </Typography>
+                                    )}
+                                    <TextField
+                                        margin="dense"
+                                        label={field.headerName || field.field}
+                                        fullWidth
+                                        variant="outlined"
+                                        type="date"
+                                        value={formValues[field.field] || ''}
+                                        onChange={(e) => handleFormFieldChange(field.field, e.target.value)}
+                                        InputLabelProps={{ shrink: true }}
+                                        placeholder={exampleValue || undefined}
+                                    />
+                                </Box>
                             );
                         } else {
                             // Default to text input (for string or fields not in schema)
                             return (
-                                <TextField
-                                    key={field.field}
-                                    margin="dense"
-                                    label={field.headerName || field.field}
-                                    fullWidth
-                                    variant="outlined"
-                                    value={formValues[field.field] || ''}
-                                    onChange={(e) => handleFormFieldChange(field.field, e.target.value)}
-                                    sx={{ mt: 1 }}
-                                    helperText={fieldSchema?.description || ''}
-                                    multiline={fieldSchema?.type === 'string' && (fieldSchema?.maxLength || 0) > 100}
-                                    rows={fieldSchema?.type === 'string' && (fieldSchema?.maxLength || 0) > 100 ? 3 : 1}
-                                />
+                                <Box key={field.field} sx={{ mt: index > 0 ? 3 : 0, mb: 2, pb: 2, borderBottom: '1px solid #e0e0e0' }}>
+                                    {description && (
+                                        <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                                            {description}
+                                        </Typography>
+                                    )}
+                                    <TextField
+                                        margin="dense"
+                                        label={field.headerName || field.field}
+                                        fullWidth
+                                        variant="outlined"
+                                        value={formValues[field.field] || ''}
+                                        onChange={(e) => handleFormFieldChange(field.field, e.target.value)}
+                                        placeholder={exampleValue || undefined}
+                                        multiline={fieldSchema?.type === 'string' && (fieldSchema?.maxLength || 0) > 100}
+                                        rows={fieldSchema?.type === 'string' && (fieldSchema?.maxLength || 0) > 100 ? 3 : 1}
+                                    />
+                                </Box>
                             );
                         }
                     })}
-                    {getFormFields().length === 0 && (
+                    {getAllFormFields().length === 0 && (
                         <Alert severity="info" sx={{ mt: 2 }}>
                             No attribute fields found. The feature will be added with only the geometry.
                         </Alert>
