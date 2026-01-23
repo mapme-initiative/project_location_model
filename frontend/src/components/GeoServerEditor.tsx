@@ -257,6 +257,10 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogMessage, setDialogMessage] = useState('');
 
+    // Form dialog state
+    const [formDialogOpen, setFormDialogOpen] = useState(false);
+    const [formValues, setFormValues] = useState<Record<string, string>>({});
+
     // Snackbar state
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -764,8 +768,63 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
         }
     }, [accessToken, wfsUrl, wfsTypeName, wfsNamespace, wfsNamespaceUri, wfsGeomFieldName, wfsGeomType, showError, showSnackbar, loadWfsData]);
 
-    // Add geocoded feature to layer
-    const handleAddToLayer = useCallback(async () => {
+    // Get form fields from columns (excluding action columns, geometry, and id fields)
+    const getFormFields = useCallback(() => {
+        if (!wfsColumns || wfsColumns.length === 0) return [];
+        
+        return wfsColumns.filter(col => {
+            const field = col.field.toLowerCase();
+            return field !== 'actions' && 
+                   field !== 'replacegeom' && 
+                   field !== 'id' && 
+                   field !== 'featureid' &&
+                   field !== 'geometry' &&
+                   field !== 'the_geom' &&
+                   field !== 'geom' &&
+                   field !== wfsGeomFieldName.toLowerCase();
+        });
+    }, [wfsColumns, wfsGeomFieldName]);
+
+    // Initialize form values when dialog opens
+    const handleOpenFormDialog = useCallback(() => {
+        const currentGeoJson = selectedGeoJsonRef.current;
+        if (!currentGeoJson) {
+            showError('Please select a location from the geocoding search first.');
+            return;
+        }
+
+        // Initialize form values from existing features if available, or empty strings
+        const fields = getFormFields();
+        const initialValues: Record<string, string> = {};
+        
+        if (wfsFeatures.length > 0) {
+            // Use first feature as template
+            const templateFeature = wfsFeatures[0];
+            fields.forEach(field => {
+                const value = templateFeature[field.field];
+                initialValues[field.field] = value !== null && value !== undefined ? String(value) : '';
+            });
+        } else {
+            // Initialize with empty strings
+            fields.forEach(field => {
+                initialValues[field.field] = '';
+            });
+        }
+
+        setFormValues(initialValues);
+        setFormDialogOpen(true);
+    }, [getFormFields, wfsFeatures, showError]);
+
+    // Handle form field change
+    const handleFormFieldChange = useCallback((field: string, value: string) => {
+        setFormValues(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    }, []);
+
+    // Submit form and add feature to layer
+    const handleFormSubmit = useCallback(async () => {
         const currentGeoJson = selectedGeoJsonRef.current;
         if (!currentGeoJson) {
             showError('Please select a location from the geocoding search first.');
@@ -792,8 +851,23 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
             return;
         }
 
-        await executeWfsInsert(geometry, { name: inputValue });
-    }, [showError, executeWfsInsert, inputValue]);
+        // Convert form values to the format expected by executeWfsInsert
+        const properties: Record<string, unknown> = {};
+        Object.keys(formValues).forEach(key => {
+            properties[key] = formValues[key];
+        });
+
+        const success = await executeWfsInsert(geometry, properties);
+        if (success) {
+            setFormDialogOpen(false);
+            setFormValues({});
+        }
+    }, [selectedGeoJson, formValues, executeWfsInsert, showError]);
+
+    // Add geocoded feature to layer (opens form dialog)
+    const handleAddToLayer = useCallback(() => {
+        handleOpenFormDialog();
+    }, [handleOpenFormDialog]);
 
     // Replace geometry handler
     const handleReplaceGeometry = useCallback(async (rowIndex: number) => {
@@ -1161,6 +1235,43 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                 initialServerUrl={serverUrl}
                 initialWfsUrl={wfsUrl}
             />
+
+            {/* Add Feature Form Dialog */}
+            <Dialog open={formDialogOpen} onClose={() => setFormDialogOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>Add Feature to Layer</DialogTitle>
+                <DialogContent>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        Enter the attribute values for the new feature. The geometry will be taken from the selected location.
+                    </Typography>
+                    {getFormFields().map((field) => (
+                        <TextField
+                            key={field.field}
+                            margin="dense"
+                            label={field.headerName || field.field}
+                            fullWidth
+                            variant="outlined"
+                            value={formValues[field.field] || ''}
+                            onChange={(e) => handleFormFieldChange(field.field, e.target.value)}
+                            sx={{ mt: 1 }}
+                        />
+                    ))}
+                    {getFormFields().length === 0 && (
+                        <Alert severity="info" sx={{ mt: 2 }}>
+                            No attribute fields found. The feature will be added with only the geometry.
+                        </Alert>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setFormDialogOpen(false)}>Cancel</Button>
+                    <Button
+                        onClick={handleFormSubmit}
+                        variant="contained"
+                        disabled={!accessToken || !wfsTypeName}
+                    >
+                        Add Feature
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             {/* Error Dialog */}
             <Dialog open={dialogOpen} onClose={handleCloseDialog}>
