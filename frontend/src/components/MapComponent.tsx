@@ -1,5 +1,5 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import {GeoJSON, LayersControl, MapContainer, TileLayer, useMap, ZoomControl} from "react-leaflet";
 import L from "leaflet";
 import 'leaflet/dist/leaflet.css';
@@ -27,17 +27,23 @@ interface MapComponentProps {
     features: GeoJSONFeature[];
   };
 }
-let controlAdded = false;
-
 // Fullscreen control component
 const FullscreenControl: React.FC = () => {
   const map = useMap();
-  // Add fullscreen control only once
-  if (!controlAdded) {
-    const fullscreenControl = L.control.fullscreen({ position: "topleft" });
-    fullscreenControl.addTo(map);
-    controlAdded = true; // Mark as added
-  }
+  const controlRef = useRef<L.Control | null>(null);
+
+  useEffect(() => {
+    // Add fullscreen control only once per map instance
+    if (!controlRef.current) {
+      const fullscreenControl = (L.control as any).fullscreen({ 
+        position: 'topright'
+      });
+      fullscreenControl.addTo(map);
+      controlRef.current = fullscreenControl;
+    }
+
+    // Don't remove on cleanup - keep it persistent for exit functionality
+  }, [map]);
 
   return null;
 };

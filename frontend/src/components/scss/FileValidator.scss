@@ -1,9 +1,54 @@
 .file_validator {
-
-	header p {
-		font-size: 16px;
-		color: #555;
+	// Header styling - matching Location Mapper
+	.editor-header {
+		background-color: #1976d2;
+		color: white;
+		padding: 16px 24px;
+		border-radius: 8px;
 		margin-bottom: 20px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		flex-shrink: 0;
+
+		.MuiTypography-root {
+			color: white;
+			font-weight: 600;
+			font-size: 1.5rem;
+		}
+
+		.MuiButton-outlined {
+			color: white;
+			border-color: rgba(255, 255, 255, 0.7);
+			font-weight: 500;
+
+			&:hover {
+				border-color: white;
+				background-color: rgba(255, 255, 255, 0.1);
+			}
+		}
+
+		.MuiIconButton-root {
+			color: white;
+
+			&:hover {
+				background-color: rgba(255, 255, 255, 0.1);
+			}
+		}
+	}
+
+	// Alert styling
+	.MuiAlert-standardInfo {
+		margin-bottom: 20px;
+		flex-shrink: 0;
+		border-radius: 8px;
+	}
+
+	.MuiAlert-standardWarning {
+		margin-bottom: 20px;
+		flex-shrink: 0;
+		border-radius: 8px;
 	}
 
 

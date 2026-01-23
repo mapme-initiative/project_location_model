@@ -17,7 +17,10 @@ import {
 	FormControl,
 	InputLabel,
 	MenuItem,
-	Select
+	Select,
+	Box,
+	Typography,
+	Alert
 } from '@mui/material';
 
 import SendMailButton from "./SendMailButton.tsx";
@@ -244,65 +247,89 @@ export default function FileValidator(): React.ReactElement {
 
 		{/* ____________________ Header / Description ____________________ */}
 
-		<header>
-			<h1>Location Validator</h1>
-			<p>
+		<Box className="editor-header" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+			<Typography variant="h5" component="h1">
+				Location Validator
+			</Typography>
+			<Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+				<FormControl variant="outlined" size="small">
+					<InputLabel id="lang-select-label" sx={{ color: 'white' }}>Language</InputLabel>
+					<Select
+						labelId="lang-select-label"
+						value={lang}
+						onChange={e => setLang(e.target.value as 'en' | 'fr')}
+						label="Language"
+						sx={{ 
+							color: 'white',
+							'& .MuiOutlinedInput-notchedOutline': {
+								borderColor: 'rgba(255, 255, 255, 0.7)',
+							},
+							'&:hover .MuiOutlinedInput-notchedOutline': {
+								borderColor: 'white',
+							},
+							'& .MuiSvgIcon-root': {
+								color: 'white',
+							}
+						}}
+					>
+						<MenuItem value="en">English</MenuItem>
+						<MenuItem value="fr">Francais</MenuItem>
+					</Select>
+				</FormControl>
+				<FileUpload
+					sx={{ ml: 1.5 }}
+					onChange={handleFileUpload}
+					title={"File upload"}
+				/>
+				<SendMailButton sx={{ ml: 1.5 }} isEnabled={enableEMailButton} {...(inProNumbers ? { inProNumbers: [...inProNumbers] } : {})} />
+				<Button
+					sx={{ ml: 1.5 }}
+					variant={"contained"}
+					disabled={!enableEMailButton}
+					onClick={downloadProcessed}
+				>Download GeoJSON</Button>
+				<Button target="_blank" href={"https://github.com/mapme-initiative/project_location_model/issues"} sx={{ ml: 1.5 }} variant={"contained"} color={"error"}>report Issue</Button>
+			</Box>
+		</Box>
+
+		<Alert severity="info" sx={{ mb: 2 }}>
+			<Typography variant="body2">
 				The Location Validator is an open-source tool designed to validate project location data against the specifications of <a target={"_blank"} href={"google.de"}>KfWs Open Project Location Model</a>. The validator accepts both Excel and GeoJSON files as input data. It identifies errors that need to be addressed, such as missing values in mandatory fields or incorrect formats for specific entries (e.g., dates not provided in the correct format). <br /><br />Errors should be corrected in the original file using Excel or GIS software, after which the files can be re-evaluated using this tool. Additionally, you can utilize the map feature within the tool to assess the geographic accuracy of the submitted project locations.
-				Once all locations are valid, the "SEND EMAIL" button will appear blue. You can than send an email with the validated data to your project counterpart.<br /><br />
+				Once all locations are valid, the "SEND EMAIL" button will appear blue. You can than send an email with the validated data to your project counterpart.
+			</Typography>
+		</Alert>
+
+		<Alert severity="warning" sx={{ mb: 2 }}>
+			<Typography variant="body2" component="div">
 				<strong>Important:</strong>
-			</p>
-			<ul>
-				<li>Make sure to attach the latest validated (and valid) version to the email.</li>
-				<li>In case of any problems or feature request create an issue at our <a href={"https://github.com/mapme-initiative/project_location_model/issues"}>Github-Issue-Tracker</a>.</li>
-			</ul>
-			<FormControl variant="outlined" size="small">
-				<InputLabel id="lang-select-label">Language</InputLabel>
-				<Select
-					labelId="lang-select-label"
-					value={lang}
-					onChange={e => setLang(e.target.value as 'en' | 'fr')}
-					label="Language"
-				>
-					<MenuItem value="en">English</MenuItem>
-					<MenuItem value="fr">Francais</MenuItem>
-				</Select>
-			</FormControl>
-			<FileUpload
-				sx={{ ml: 1.5 }}
-				onChange={handleFileUpload}
-				title={"File upload"}
-			/>
-			<SendMailButton sx={{ ml: 1.5 }} isEnabled={enableEMailButton} {...(inProNumbers ? { inProNumbers: [...inProNumbers] } : {})} />
-			<Button
-				sx={{ ml: 1.5 }}
-				variant={"contained"}
-				disabled={!enableEMailButton}
-				onClick={downloadProcessed}
-			>Download GeoJSON</Button>
-			<Button target="_blank" href={"https://github.com/mapme-initiative/project_location_model/issues"} sx={{ ml: 1.5 }} variant={"contained"} color={"error"}>report Issue</Button>
-		</header>
+				<ul style={{ marginTop: '8px', marginBottom: '0', paddingLeft: '20px' }}>
+					<li>Make sure to attach the latest validated (and valid) version to the email.</li>
+					<li>In case of any problems or feature request create an issue at our <a href={"https://github.com/mapme-initiative/project_location_model/issues"}>Github-Issue-Tracker</a>.</li>
+				</ul>
+			</Typography>
+		</Alert>
 
 
 
 		{/* ____________________ Validation Result ____________________ */}
 
 		{validationResult && (
-			<div
-				style={{
-					...(validationResult.toLowerCase().includes("data is valid!") ? { backgroundColor: "rgba(0, 128, 0, 0.2)" } : {}),
-					...(validationResult.toLowerCase().includes("error") ? { backgroundColor: "rgba(128, 0, 0, 0.2)" } : {}),
-					maxHeight: '360px',
-					overflowY: 'auto',
-					overflowX: 'hidden',
-					marginTop: '0.5rem',
-					padding: '0.2rem',
-					border: '1px solid #ccc',
-					borderRadius: '4px',
-				}}
+			<Alert 
+				severity={validationResult.toLowerCase().includes("data is valid!") ? "success" : "error"}
+				sx={{ mb: 2, maxHeight: '360px', overflowY: 'auto' }}
 			>
-				<h3>Validation Result</h3>
-				<pre>{validationResult}</pre>
-			</div>
+				<Typography variant="h6" component="div" sx={{ mb: 1, fontWeight: 600 }}>
+					Validation Result
+				</Typography>
+				<Typography variant="body2" component="pre" sx={{ 
+					whiteSpace: 'pre-wrap', 
+					wordWrap: 'break-word',
+					fontFamily: 'monospace',
+					margin: 0
+				}}>
+					{validationResult}
+				</Typography>
+			</Alert>
 		)}
 
 
@@ -316,18 +343,22 @@ export default function FileValidator(): React.ReactElement {
 
 		{/* ____________________ Buttons ____________________ */}
 
-		<div className='file_validator_buttons'>
-
-			<button
+		<Box sx={{ mt: 2, mb: 2 }}>
+			<Button
+				variant="contained"
 				onClick={resetMap}
-			>Reset Map</button>
-		</div>
+			>
+				Reset Map
+			</Button>
+		</Box>
 
 
 
 		{/* ____________________ Example ____________________ */}
 
-		<h4>Example Files:</h4>
+		<Typography variant="h6" component="h4" sx={{ mt: 3, mb: 1, fontWeight: 600 }}>
+			Example Files:
+		</Typography>
 		<ul className="example-files">
 			<li><p><a href={"./Project_Location_Data_Template_EN_V03.xlsx"}>working example</a></p></li>
 			<li><p><a href={"./Project_Location_Data_Template_FR_V03.xlsx"}>french example</a></p></li>
