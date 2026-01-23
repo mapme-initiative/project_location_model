@@ -1019,6 +1019,59 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
         }
     }, [serverUrl]);
 
+    // Escape HTML to prevent XSS
+    const escapeHtml = useCallback((text: string): string => {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }, []);
+
+    // Generate popup content from feature properties
+    const generatePopupContent = useCallback((feature: Feature): string => {
+        if (!feature.properties) {
+            return '<div class="map-popup"><p>No properties available</p></div>';
+        }
+
+        const props = feature.properties;
+        const propKeys = Object.keys(props);
+        
+        // Filter out geometry-related fields and id fields for display
+        const displayKeys = propKeys.filter(key => {
+            const keyLower = key.toLowerCase();
+            return keyLower !== 'geometry' && 
+                   keyLower !== 'the_geom' && 
+                   keyLower !== 'geom' &&
+                   keyLower !== 'id' &&
+                   keyLower !== 'fid' &&
+                   keyLower !== wfsGeomFieldName.toLowerCase();
+        });
+
+        if (displayKeys.length === 0) {
+            return '<div class="map-popup"><p>No attribute fields available</p></div>';
+        }
+
+        let popupContent = '<div class="map-popup"><div class="popup-content">';
+        
+        displayKeys.forEach(key => {
+            const value = props[key];
+            const displayValue = value !== null && value !== undefined ? String(value) : 'N/A';
+            const escapedKey = escapeHtml(key);
+            const escapedValue = escapeHtml(displayValue);
+            popupContent += `<p><span class="popup-label">${escapedKey}:</span> <span class="popup-value">${escapedValue}</span></p>`;
+        });
+
+        popupContent += '</div></div>';
+        return popupContent;
+    }, [wfsGeomFieldName, escapeHtml]);
+
+    // Handle feature click to show popup with all attributes
+    const onEachWfsFeature = useCallback((feature: Feature, layer: L.Layer) => {
+        if (feature.properties) {
+            const popupContent = generatePopupContent(feature);
+            layer.bindPopup(popupContent);
+        }
+    }, [generatePopupContent]);
+
     return (
         <div className="geoserver-editor">
             {/* Header */}
@@ -1202,6 +1255,7 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                                 fillColor: '#ff5722',
                                 fillOpacity: 0.3
                             }}
+                            onEachFeature={onEachWfsFeature}
                         />
                     )}
                 </MapContainer>
