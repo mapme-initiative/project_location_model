@@ -18,10 +18,12 @@ import {
     Tab
 } from '@mui/material';
 
+export type DataModel = 'none' | 'en' | 'fr';
+
 interface GeoServerAuthProps {
     open: boolean;
     onClose: () => void;
-    onAuthenticated: (token: string, serverUrl: string, wfsUrl: string) => void;
+    onAuthenticated: (token: string, serverUrl: string, wfsUrl: string, dataModel: DataModel) => void;
     initialServerUrl?: string;
     initialWfsUrl?: string;
 }
@@ -63,6 +65,7 @@ export default function GeoServerAuth({
     const [accessToken, setAccessToken] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [dataModel, setDataModel] = useState<DataModel>('none');
 
     const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
         setTabValue(newValue);
@@ -110,7 +113,7 @@ export default function GeoServerAuth({
             if (response.ok) {
                 const data = await response.json();
                 if (data.access_token) {
-                    onAuthenticated(data.access_token, baseUrl, wfsUrl);
+                    onAuthenticated(data.access_token, baseUrl, wfsUrl, dataModel);
                     handleClose();
                     return;
                 }
@@ -141,7 +144,7 @@ export default function GeoServerAuth({
                 if (tokenResponse.ok) {
                     const tokenData = await tokenResponse.json();
                     if (tokenData.token) {
-                        onAuthenticated(tokenData.token, baseUrl, wfsUrl);
+                        onAuthenticated(tokenData.token, baseUrl, wfsUrl, dataModel);
                         handleClose();
                         return;
                     }
@@ -180,9 +183,9 @@ export default function GeoServerAuth({
         }
 
         const baseUrl = getBaseUrl(serverUrl);
-        onAuthenticated(accessToken.trim(), baseUrl, wfsUrl);
+        onAuthenticated(accessToken.trim(), baseUrl, wfsUrl, dataModel);
         handleClose();
-    }, [accessToken, serverUrl, wfsUrl, getBaseUrl, onAuthenticated]);
+    }, [accessToken, serverUrl, wfsUrl, dataModel, getBaseUrl, onAuthenticated]);
 
     const handleClose = useCallback(() => {
         setError(null);
@@ -246,6 +249,19 @@ export default function GeoServerAuth({
                     sx={{ mt: 2 }}
                     helperText="Enter WFS GetFeature URL to load layer data"
                 />
+
+                <FormControl fullWidth sx={{ mt: 2 }}>
+                    <InputLabel>Use Data Model</InputLabel>
+                    <Select
+                        value={dataModel}
+                        label="Use Data Model"
+                        onChange={(e) => setDataModel(e.target.value as DataModel)}
+                    >
+                        <MenuItem value="none">None</MenuItem>
+                        <MenuItem value="en">English</MenuItem>
+                        <MenuItem value="fr">French</MenuItem>
+                    </Select>
+                </FormControl>
 
                 <TabPanel value={tabValue} index={0}>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>

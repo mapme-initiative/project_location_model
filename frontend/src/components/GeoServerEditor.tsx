@@ -17,7 +17,11 @@ import {
     Chip,
     Tooltip,
     Alert,
-    Snackbar
+    Snackbar,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem
 } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import SearchIcon from '@mui/icons-material/Search';
@@ -31,7 +35,7 @@ import { MapContainer, TileLayer, GeoJSON, useMap, LayersControl } from 'react-l
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import type { GeoJsonObject, FeatureCollection, Feature, Geometry, Position } from 'geojson';
-import GeoServerAuth from './GeoServerAuth';
+import GeoServerAuth, { DataModel } from './GeoServerAuth';
 import './scss/GeoServerEditor.scss';
 
 // Helper: Coordinates array to GML 2.x coordinates string (comma between x,y and space between pairs)
@@ -277,6 +281,10 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
     const [wfsGeomFieldName, setWfsGeomFieldName] = useState<string>('the_geom');
     const [wfsGeomType, setWfsGeomType] = useState<string>(''); // MultiPolygon, Polygon, Point, etc.
 
+    // Data model state
+    const [dataModel, setDataModel] = useState<DataModel>('none');
+    const [schema, setSchema] = useState<any>(null);
+
     const showError = useCallback((message: string) => {
         setDialogMessage(message);
         setDialogOpen(true);
@@ -292,14 +300,37 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
         setDialogOpen(false);
     }, []);
 
-    const handleAuthenticated = useCallback((token: string, url: string, wfsUrlFromAuth: string) => {
+    // Load schema based on data model
+    const loadSchema = useCallback(async (model: DataModel) => {
+        if (model === 'none') {
+            setSchema(null);
+            return;
+        }
+
+        try {
+            const response = await fetch(`/schemas/project_core_schema_${model}.json`);
+            if (!response.ok) {
+                throw new Error(`Failed to load schema for ${model}`);
+            }
+            const schemaData = await response.json();
+            setSchema(schemaData);
+        } catch (error) {
+            console.error('Error loading schema:', error);
+            showError(`Failed to load data model schema: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            setSchema(null);
+        }
+    }, [showError]);
+
+    const handleAuthenticated = useCallback((token: string, url: string, wfsUrlFromAuth: string, dataModelFromAuth: DataModel) => {
         setAccessToken(token);
         setServerUrl(url);
+        setDataModel(dataModelFromAuth);
         if (wfsUrlFromAuth.trim()) {
             setWfsUrl(wfsUrlFromAuth);
         }
+        loadSchema(dataModelFromAuth);
         showSnackbar('Successfully authenticated!', 'success');
-    }, [showSnackbar]);
+    }, [showSnackbar, loadSchema]);
 
     const handleLogout = useCallback(() => {
         setAccessToken(null);
@@ -768,6 +799,26 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
         }
     }, [accessToken, wfsUrl, wfsTypeName, wfsNamespace, wfsNamespaceUri, wfsGeomFieldName, wfsGeomType, showError, showSnackbar, loadWfsData]);
 
+    // Get field schema from data model
+    const getFieldSchema = useCallback((fieldName: string): any => {
+        if (!schema || !schema.properties) return null;
+        
+        // Try exact match first
+        if (schema.properties[fieldName]) {
+            return schema.properties[fieldName];
+        }
+        
+        // Try case-insensitive match
+        const fieldLower = fieldName.toLowerCase();
+        for (const key in schema.properties) {
+            if (key.toLowerCase() === fieldLower) {
+                return schema.properties[key];
+            }
+        }
+        
+        return null;
+    }, [schema]);
+
     // Get form fields from columns (excluding action columns, geometry, and id fields)
     const getFormFields = useCallback(() => {
         if (!wfsColumns || wfsColumns.length === 0) return [];
@@ -852,9 +903,30 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
         }
 
         // Convert form values to the format expected by executeWfsInsert
+        // Convert based on schema types if available
         const properties: Record<string, unknown> = {};
         Object.keys(formValues).forEach(key => {
-            properties[key] = formValues[key];
+            const fieldSchema = getFieldSchema(key);
+            const value = formValues[key];
+            
+            if (value === '' || value === null || value === undefined) {
+                // Skip empty values
+                return;
+            }
+            
+            // Convert based on schema type
+            if (fieldSchema) {
+                if (fieldSchema.type === 'number') {
+                    properties[key] = parseFloat(value);
+                } else if (fieldSchema.type === 'integer') {
+                    properties[key] = parseInt(value, 10);
+                } else {
+                    properties[key] = value;
+                }
+            } else {
+                // No schema, keep as string
+                properties[key] = value;
+            }
         });
 
         const success = await executeWfsInsert(geometry, properties);
@@ -1296,19 +1368,88 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                 <DialogContent>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                         Enter the attribute values for the new feature. The geometry will be taken from the selected location.
+                        {dataModel !== 'none' && schema && (
+                            <span> Using {dataModel === 'en' ? 'English' : 'French'} data model.</span>
+                        )}
                     </Typography>
-                    {getFormFields().map((field) => (
-                        <TextField
-                            key={field.field}
-                            margin="dense"
-                            label={field.headerName || field.field}
-                            fullWidth
-                            variant="outlined"
-                            value={formValues[field.field] || ''}
-                            onChange={(e) => handleFormFieldChange(field.field, e.target.value)}
-                            sx={{ mt: 1 }}
-                        />
-                    ))}
+                    {getFormFields().map((field) => {
+                        const fieldSchema = getFieldSchema(field.field);
+                        const fieldType = fieldSchema?.type;
+                        const hasEnum = fieldSchema?.enum && Array.isArray(fieldSchema.enum);
+                        const isNumber = fieldType === 'number' || fieldType === 'integer';
+                        const isDate = fieldSchema?.format === 'date' || fieldSchema?.format === 'date-time';
+                        
+                        // Generate input based on schema
+                        if (hasEnum && fieldSchema.enum.length > 0) {
+                            // Use Select for enum fields
+                            return (
+                                <FormControl key={field.field} fullWidth sx={{ mt: 1 }}>
+                                    <InputLabel>{field.headerName || field.field}</InputLabel>
+                                    <Select
+                                        value={formValues[field.field] || ''}
+                                        label={field.headerName || field.field}
+                                        onChange={(e) => handleFormFieldChange(field.field, e.target.value)}
+                                    >
+                                        {fieldSchema.enum.map((enumValue: any) => (
+                                            <MenuItem key={String(enumValue)} value={String(enumValue)}>
+                                                {String(enumValue)}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            );
+                        } else if (isNumber) {
+                            // Use number input for numeric fields
+                            return (
+                                <TextField
+                                    key={field.field}
+                                    margin="dense"
+                                    label={field.headerName || field.field}
+                                    fullWidth
+                                    variant="outlined"
+                                    type="number"
+                                    value={formValues[field.field] || ''}
+                                    onChange={(e) => handleFormFieldChange(field.field, e.target.value)}
+                                    sx={{ mt: 1 }}
+                                    helperText={fieldSchema?.description || ''}
+                                />
+                            );
+                        } else if (isDate) {
+                            // Use date input for date fields
+                            return (
+                                <TextField
+                                    key={field.field}
+                                    margin="dense"
+                                    label={field.headerName || field.field}
+                                    fullWidth
+                                    variant="outlined"
+                                    type="date"
+                                    value={formValues[field.field] || ''}
+                                    onChange={(e) => handleFormFieldChange(field.field, e.target.value)}
+                                    sx={{ mt: 1 }}
+                                    InputLabelProps={{ shrink: true }}
+                                    helperText={fieldSchema?.description || ''}
+                                />
+                            );
+                        } else {
+                            // Default to text input (for string or fields not in schema)
+                            return (
+                                <TextField
+                                    key={field.field}
+                                    margin="dense"
+                                    label={field.headerName || field.field}
+                                    fullWidth
+                                    variant="outlined"
+                                    value={formValues[field.field] || ''}
+                                    onChange={(e) => handleFormFieldChange(field.field, e.target.value)}
+                                    sx={{ mt: 1 }}
+                                    helperText={fieldSchema?.description || ''}
+                                    multiline={fieldSchema?.type === 'string' && (fieldSchema?.maxLength || 0) > 100}
+                                    rows={fieldSchema?.type === 'string' && (fieldSchema?.maxLength || 0) > 100 ? 3 : 1}
+                                />
+                            );
+                        }
+                    })}
                     {getFormFields().length === 0 && (
                         <Alert severity="info" sx={{ mt: 2 }}>
                             No attribute fields found. The feature will be added with only the geometry.
