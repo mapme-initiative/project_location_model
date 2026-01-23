@@ -21,8 +21,9 @@ import {
 interface GeoServerAuthProps {
     open: boolean;
     onClose: () => void;
-    onAuthenticated: (token: string, serverUrl: string) => void;
+    onAuthenticated: (token: string, serverUrl: string, wfsUrl: string) => void;
     initialServerUrl?: string;
+    initialWfsUrl?: string;
 }
 
 interface TabPanelProps {
@@ -50,10 +51,12 @@ export default function GeoServerAuth({
     open,
     onClose,
     onAuthenticated,
-    initialServerUrl = ''
+    initialServerUrl = '',
+    initialWfsUrl = ''
 }: GeoServerAuthProps): React.ReactElement {
     const [tabValue, setTabValue] = useState(0);
     const [serverUrl, setServerUrl] = useState(initialServerUrl);
+    const [wfsUrl, setWfsUrl] = useState(initialWfsUrl);
     const [serverType, setServerType] = useState<'geonode' | 'geoserver'>('geonode');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -107,7 +110,7 @@ export default function GeoServerAuth({
             if (response.ok) {
                 const data = await response.json();
                 if (data.access_token) {
-                    onAuthenticated(data.access_token, baseUrl);
+                    onAuthenticated(data.access_token, baseUrl, wfsUrl);
                     handleClose();
                     return;
                 }
@@ -138,7 +141,7 @@ export default function GeoServerAuth({
                 if (tokenResponse.ok) {
                     const tokenData = await tokenResponse.json();
                     if (tokenData.token) {
-                        onAuthenticated(tokenData.token, baseUrl);
+                        onAuthenticated(tokenData.token, baseUrl, wfsUrl);
                         handleClose();
                         return;
                     }
@@ -163,7 +166,7 @@ export default function GeoServerAuth({
         } finally {
             setLoading(false);
         }
-    }, [serverUrl, username, password, getBaseUrl, onAuthenticated]);
+    }, [serverUrl, wfsUrl, username, password, getBaseUrl, onAuthenticated]);
 
     // Use manual access token
     const useAccessToken = useCallback(() => {
@@ -177,14 +180,15 @@ export default function GeoServerAuth({
         }
 
         const baseUrl = getBaseUrl(serverUrl);
-        onAuthenticated(accessToken.trim(), baseUrl);
+        onAuthenticated(accessToken.trim(), baseUrl, wfsUrl);
         handleClose();
-    }, [accessToken, serverUrl, getBaseUrl, onAuthenticated]);
+    }, [accessToken, serverUrl, wfsUrl, getBaseUrl, onAuthenticated]);
 
     const handleClose = useCallback(() => {
         setError(null);
         setUsername('');
         setPassword('');
+        setAccessToken('');
         onClose();
     }, [onClose]);
 
@@ -230,6 +234,18 @@ export default function GeoServerAuth({
                         <MenuItem value="geoserver">GeoServer</MenuItem>
                     </Select>
                 </FormControl>
+
+                <TextField
+                    margin="dense"
+                    label="WFS-JSON URL"
+                    placeholder="https://geoserver.example.com/geoserver/workspace/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=workspace:layer&outputFormat=application/json&srsName=EPSG:4326"
+                    fullWidth
+                    variant="outlined"
+                    value={wfsUrl}
+                    onChange={(e) => setWfsUrl(e.target.value)}
+                    sx={{ mt: 2 }}
+                    helperText="Enter WFS GetFeature URL to load layer data"
+                />
 
                 <TabPanel value={tabValue} index={0}>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>

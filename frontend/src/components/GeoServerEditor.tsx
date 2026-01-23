@@ -234,6 +234,8 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
     // Refs for callbacks
     const selectedGeoJsonRef = useRef<GeoJsonObject | null>(null);
     const wfsGeoJsonRef = useRef<FeatureCollection | null>(null);
+    const loadWfsDataRef = useRef<(() => Promise<void>) | null>(null);
+    const lastAutoLoadRef = useRef<string>('');
 
     useEffect(() => {
         selectedGeoJsonRef.current = selectedGeoJson;
@@ -286,9 +288,12 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
         setDialogOpen(false);
     }, []);
 
-    const handleAuthenticated = useCallback((token: string, url: string) => {
+    const handleAuthenticated = useCallback((token: string, url: string, wfsUrlFromAuth: string) => {
         setAccessToken(token);
         setServerUrl(url);
+        if (wfsUrlFromAuth.trim()) {
+            setWfsUrl(wfsUrlFromAuth);
+        }
         showSnackbar('Successfully authenticated!', 'success');
     }, [showSnackbar]);
 
@@ -519,6 +524,26 @@ export default function GeoServerEditor({ onNavigateHome }: GeoServerEditorProps
             setWfsLoading(false);
         }
     }, [wfsUrl, accessToken, showError, showSnackbar]);
+
+    // Store loadWfsData in ref for auto-loading
+    useEffect(() => {
+        loadWfsDataRef.current = loadWfsData;
+    }, [loadWfsData]);
+
+    // Auto-load WFS data when authenticated with WFS URL (only once per URL+token combination)
+    useEffect(() => {
+        const loadKey = `${accessToken || ''}:${wfsUrl}`;
+        if (accessToken && wfsUrl.trim() && loadKey !== lastAutoLoadRef.current && !wfsLoading && loadWfsDataRef.current) {
+            lastAutoLoadRef.current = loadKey;
+            // Small delay to ensure state is settled
+            const timer = setTimeout(() => {
+                if (loadWfsDataRef.current) {
+                    loadWfsDataRef.current();
+                }
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [accessToken, wfsUrl, wfsLoading]);
 
     // WFS-T Transaction
     const executeWfsTransaction = useCallback(async (
@@ -910,6 +935,16 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
         }
     }, []);
 
+    // Helper to get server hostname safely
+    const getServerHost = useCallback(() => {
+        if (!serverUrl) return 'Server';
+        try {
+            return new URL(serverUrl).host;
+        } catch {
+            return serverUrl;
+        }
+    }, [serverUrl]);
+
     return (
         <div className="geoserver-editor">
             {/* Header */}
@@ -921,7 +956,7 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                     {accessToken ? (
                         <>
                             <Chip
-                                label={`Connected: ${serverUrl ? new URL(serverUrl).host : 'Server'}`}
+                                label={`Connected: ${getServerHost()}`}
                                 color="success"
                                 size="small"
                             />
@@ -956,20 +991,8 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                 </Alert>
             )}
 
-            {/* WFS URL and Geocoding in same row */}
+            {/* Search location and Add to Layer in same row */}
             <Box className="input-section">
-                <TextField
-                    fullWidth
-                    label="WFS-JSON URL"
-                    placeholder="https://geoserver.example.com/geoserver/workspace/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=workspace:layer&outputFormat=application/json&srsName=EPSG:4326"
-                    value={wfsUrl}
-                    onChange={(e) => setWfsUrl(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && loadWfsData()}
-                    InputProps={{
-                        endAdornment: wfsLoading ? <CircularProgress size={20} /> : null,
-                    }}
-                    helperText="Enter WFS GetFeature URL and press Enter to load"
-                />
                 <Autocomplete<NominatimResult, false, false, true>
                     freeSolo
                     options={options}
@@ -985,11 +1008,12 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                         const val = value as NominatimResult;
                         return opt.place_id === val.place_id;
                     }}
+                    sx={{ flex: 1 }}
                     renderInput={(params) => (
                         <TextField
                             {...params}
-                            label="Search location (Geocoding)"
-                            placeholder="e.g. Berlin, Hamburg..."
+                            label="Search location or Address"
+                            placeholder="Paul-Löbe-Allee 1, Berlin"
                             InputProps={{
                                 ...params.InputProps,
                                 startAdornment: <AddLocationIcon sx={{ mr: 1, color: 'action.active' }} />,
@@ -1011,25 +1035,23 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                         );
                     }}
                 />
+                {selectedGeoJson && wfsTypeName && (
+                    <Box className="add-to-layer-section">
+                        <Typography className="geocoded-info">
+                            <strong>Selected:</strong> {inputValue || 'Geocoded location'}
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<SaveIcon />}
+                            onClick={handleAddToLayer}
+                            disabled={!accessToken || !wfsTypeName}
+                        >
+                            Add to layer
+                        </Button>
+                    </Box>
+                )}
             </Box>
-
-            {/* Add to Layer Section */}
-            {selectedGeoJson && wfsTypeName && (
-                <Box className="add-to-layer-section">
-                    <Typography className="geocoded-info">
-                        <strong>Selected:</strong> {inputValue || 'Geocoded location'}
-                    </Typography>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<SaveIcon />}
-                        onClick={handleAddToLayer}
-                        disabled={!accessToken || !wfsTypeName}
-                    >
-                        Add to layer
-                    </Button>
-                </Box>
-            )}
 
             {/* Map */}
             <Box className="map-container" sx={{ mb: 2 }}>
@@ -1100,6 +1122,7 @@ ${propertyElements}      <${wfsNamespace}:${geomFieldName}>${geometryGml}</${wfs
                 onClose={() => setAuthDialogOpen(false)}
                 onAuthenticated={handleAuthenticated}
                 initialServerUrl={serverUrl}
+                initialWfsUrl={wfsUrl}
             />
 
             {/* Error Dialog */}
