@@ -1,8 +1,6 @@
 # Open Geodata Model Validator
 This is a simple website which validates if an excel/geodata-file is valid according to the Open Geodata Model.
 
-In case you're more interested in the Open Geodata Model specification you'll find it [here](https://github.com/openkfw/open-geodata-model)
-
 The Validator - Tool itself can be accessed [here](https://mapme-initiative.github.io/ogm-validator/)
 
 ### This project is built with [Vite](https://vitejs.dev/) and React using TypeScript. Below are instructions to run and manage the project locally.
