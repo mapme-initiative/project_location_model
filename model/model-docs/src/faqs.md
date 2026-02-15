@@ -1,38 +1,47 @@
 # FAQs
 
-## What is a location type?
-
-While the Data Model template closely follows IATI standards, additional location types have been created to cover the full range of financial cooperation projects. Location types provide a brief description about the function of the Project Location. 
-
-Our extended list includes IATI location types that are useful for international development, as well as additional types relevant to all sectors. 197 new project location types have been created. These include for example, Capacity Development/Training or Voucher Schemes, which cannot be plotted based on any physical features on a map, but can be defined by underlying areas in which these types of projects operate. By extension, location types can be defined as project output- or intervention-related types of physical locations or areas. Please refer to the list of location types in the Excel template or in the json model for more information.
-
-If a specific location type has not yet been added, please use the most similar available type (e.g. "well" for "extraction well"). Additional information can then be added if necessary. 
-
 ## Why collect information on Project Locations?
 
-The German Financial Cooperation uses Project Locations to report on the relevance, progress, and impacts of our project portfolios. We create maps of the portfolios of Project Locations for the German Federal Ministry for Economic Cooperation and Development [BMZ](https://www.bmz.de/de) and for our internal and external stakeholders. The data is used to assess portfolios for social, environmental or climate-related risks. 
+The German Financial Cooperation uses project locations to report on the relevance, progress, and impacts of our project portfolios. We create maps of the portfolios of project locations for the German Federal Ministry for Economic Cooperation and Development [BMZ](https://www.bmz.de/de), other donors as well as for our internal and external stakeholders. The data is also used to appraise potential new project locations during project preparation and to assess portfolios for social, environmental or climate-related risks. 
+
 
 ## When should Project Locations information be collected?
 
-KfW strongly encourages PEA or consultant staff to collect geo-coordinates as early as possible, to optimize the potential utility of such data throughout the entire project cycle. Ideally, data should already be collected during the project preparation phase, e.g. as part of a feasibility study.
+KfW strongly encourages project executing agencies (PEA) or consultant staff to collect project locations as early as possible, to optimize the potential utility of such data throughout the entire project cycle. Ideally, data should already be collected during the project preparation phase, e.g. as part of a feasibility study.
 
 If exact locations cannot be determined at this stage, approximate location should be used (see below) and rechecked later during project appraisal and inception stages, where it may be possible to update approximate to exact locations. During project implementation, data should be updated at least once annually in project progress reviews. This ensures that any potential changes are reflected in the geographical allocation of funds, which are common in Financial Cooperation projects.
 
-## Are Project Locations confidential?
 
-The Excel template must be submitted without containing any personal data or any data that could be linked to individual persons, such as houses of private households. Exact coordinates of Project Locations remain confidential and are not published publicly by KfW. 
+## What is a location type?
 
-Location data in fragile and conflict contexts are treated with extra diligence. If an exact Project Location is not to be collected or communicated due to security reasons, select the option "approximate (security)" in the "Geographic Exactness" column. Furthermore, by indicating "yes" in the column "Publishing restrictions due to security reasons" associated to a Project Location, it will be omitted from publicly available reports.
+While most of the other attributes of the data model template closely follow International Aid Transparency Initiative [IATI](https://iatistandard.org/en/iati-standard/) standards, the existing list of IATI [location types](https://iatistandard.org/en/iati-standard/203/codelists/locationtype/), that was inadequate to international aid and development cooperation, has been amended to cover the full range of projects. A "location type" summarizes the output- or intervention-related type of a physical location or - in case there is no physical location related to a project activity (i.e. a so-called "immaterial location type") - its target area. 
 
-## How was the model developed with respect to IATI standards?
-The Project Locations Model is mostly based on a proposal by the International Aid Transparency Initiative (IATI) to collect project specific geo-information, which is used by international development organizations. It harmonizes and coordinates development projects across multiple donor agencies. 
+Our updated list of 224 IATI location types cover all sectors of international aid and development: 32 location types were taken unchanged from the original IATI list (i.e. bridge), 14 location types were changed slightly (i.e. from "water pumping station" to "water pump" keeping its code) and 178 new project location types have been created. These include for example, immaterial location types "capacity development / training" or "voucher(s) (system) distributrion area", which cannot be plotted based on any physical features on a map, but can be defined by their target area. Please refer to the list of location types in the Excel template or in the json model for more information.
 
-This standard was further developed in this context to address our operational needs. In particular, the Project Location Model mostly uses predefined categories under the International Aid Transparency Initiative (IATI) standard. Furthermore, built-in selection methods support clean data entry in Excel. The existing IATI list of location types has been expanded to cover all physical and immaterial location types required by international development cooperation standards.
+For you to find your most suitable location type easily, we grouped them into "location type themes" that are most typical to a certain sector, i.e. you will find the location type "school" under the preselection field, i.e. location type theme "Education". For location types that occur in many sectors, i.e. "building", please choose the location type theme "_Generic / Cross_Sectoral".    
+
+If a specific location type is not available, please use the most similar available type (e.g. "well" for "extraction well") and mention "extraction well" in the activity description. If you cannot find any suitable similar location type, please choose "other physical" or "other immaterial".
+
 
 ## What are approximate locations and how can they be used?
-Approximate locations should be used if onf of the following circumstances apply: 
+
+Approximate locations should be used if one of the following circumstances apply: 
 1. An exact project location has not (yet) been specified or is not yet known (e.g., the exact project locations have not yet been determined) -> then choose the option: approximate (yet unknown).
 2. An exact project location is not to be collected or communicated due to security reasons (e.g., in a conflict zone) -> then choose the option: approximate (security).
 3. The target location(s) is/are one or more administrative units, such as a district, a province, or the entire country or group of countries (e.g., an entire country for a Policy-Based-Lending project or a number of districts in a country for a decentralization project) -> then choose the option: approximate (admin unit).
 
 
+## Are Project Locations confidential?
+
+The Excel template must be submitted without containing any personal data or any data that could be linked to individual persons, such as houses of private households. Exact coordinates of project locations remain confidential and are not published publicly by KfW. 
+
+Location data in fragile and conflict contexts are treated with extra diligence. If an exact project location is not to be collected or communicated due to security reasons, select the option "approximate (security)" in the "Geographic Exactness" column. Furthermore, by indicating "yes" in the column "Publishing restrictions due to security reasons" associated to a project location, it will be omitted from publicly available reports.
+
+
+## How was the model developed with respect to IATI standards?
+The Project Locations Model is mostly based on the existing codelists of the International Aid Transparency Initiative [IATI](https://iatistandard.org/en/iati-standard/) to collect project specific geo-information and other relevant location attributes, which are used by international aid and development organizations. It harmonizes and coordinates aid and development projects across multiple donor agencies. However, the IATI standard is not considered operational at subnational level - mainly, because its location types list is not (yet) suitable for international aid and development cooperation projects and other types of relevant attributes have not yet been selected and prioritized (for example, the most suitable administrative unit repositories) for a common minimum list of location attributes, i.e. a true common standard.    
+
+Therefore, the existing geolocation-related elements of the IATI standard were further developed and operationalized in our model. In particular, the existing IATI list of location types was modified to cover all physical and immaterial location types required by international aid and development cooperation standards. Also, the "exactness" categorization of geo-coordinates was expanded from the binary choice between "exact" and "approximate" to "exact" and three distinct categories of "approximate": 
+- "exact location is yet unknown, or
+- "exact location not to be published due to security concenrns" or
+- location is a an "administrative unit".
