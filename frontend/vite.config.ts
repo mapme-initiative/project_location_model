@@ -10,7 +10,8 @@ export default defineConfig({
       react(),
       eslint({
         // optional: nur bestimmte Dateien/Ordner prüfen
-        include: ['src/**/*.ts', 'src/**/*.tsx']
+        include: ['src/**/*.ts', 'src/**/*.tsx'],
+        fix: true, // optional: Fehler automatisch beheben
       })
   ],
   css: {
