@@ -9,8 +9,8 @@ import { SupportedLangs } from "./Utils.ts";
 async function loadSchemas(lang: SupportedLangs): Promise<{ feature: any, core: any }> {
     try {
         const [featureResponse, coreResponse] = await Promise.all([
-            fetch(`/schemas/feature_project_schema.json`),
-            fetch(`/schemas/project_core_schema_${lang}.json`)
+            fetch(`schemas/feature_project_schema.json`),
+            fetch(`schemas/project_core_schema_${lang}.json`)
         ]);
 
         if (!featureResponse.ok || !coreResponse.ok) {

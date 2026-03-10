@@ -4,12 +4,13 @@ on:
     branches:
       - main
 
+
+permissions:
+  contents: write # for schemas
+  pull-requests: write
+  checks: write
 jobs:
-    test:
-        permissions:
-          contents: write # for schemas
-          pull-requests: write
-          checks: write
+     test:
         runs-on: ubuntu-latest
         steps:
           - name: Checkout
