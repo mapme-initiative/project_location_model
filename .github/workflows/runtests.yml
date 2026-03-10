@@ -1,6 +1,6 @@
 name: "run tests"
 on:
-  pull_request:
+  pull_request_target:             #https://github.com/ArtiomTr/jest-coverage-report-action?tab=readme-ov-file#forks-with-no-write-permission
     branches:
       - main
 
@@ -21,9 +21,6 @@ jobs:
              node-version: '22'
           - name: Install Dependencies
             run: cd frontend && npm ci
-          - name: test
-            run: cd frontend && npx jest --ci --json --coverage --testLocationInResults --outputFile=report.json && cat package.json
-
           - name: Jest coverage report
             uses: ArtiomTr/jest-coverage-report-action@v2.3.1
             with:
