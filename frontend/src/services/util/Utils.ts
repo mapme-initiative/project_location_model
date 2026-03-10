@@ -24,6 +24,7 @@ function getDataBySheetName(workbook: WorkBook, sheetName: string) {
     return excelData.map(toGeoFeature);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toGeoFeature(row: any) {
     const {
         primaryKey,
@@ -57,6 +58,7 @@ function toGeoFeature(row: any) {
     };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function removeWhiteSpaceInFeatureProperty(f: any): string {
     return f.properties.kfwProjectNoINPRO.replaceAll(" ", "");
 }
@@ -90,7 +92,7 @@ export function excelToGeoJson(data: string | ArrayBuffer | null | undefined, la
 
     if (!wb.SheetNames.includes(expectedSheetName)) {
         throw new Error(
-            `Sheet \"${expectedSheetName}\" not found for language ${lang}. ` +
+            `Sheet "${expectedSheetName}" not found for language ${lang}. ` +
             `Available sheets are: ${wb.SheetNames.join(', ')}`
         );
     }
@@ -108,6 +110,7 @@ export function formatError(error: ErrorObject): string {
     return `Error${path}${message}`;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function toValidatedFeature(feature: any, validateProject: ValidateFunction<unknown>): any | null {
     const isValid = validateProject(feature);
     return isValid ? feature : null;
