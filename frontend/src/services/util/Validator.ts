@@ -6,6 +6,7 @@ import { SupportedLangs } from "./Utils.ts";
  * Load schemas from the public/schemas directory
  * Schemas are copied there during build from model/schema/
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function loadSchemas(lang: SupportedLangs): Promise<{ feature: any, core: any }> {
     try {
         const [featureResponse, coreResponse] = await Promise.all([
