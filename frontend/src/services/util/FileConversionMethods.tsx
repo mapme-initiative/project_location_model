@@ -6,21 +6,21 @@ export const excelDateToString = (excelDate: number): string => {
         const utc_days = Math.floor(excelDate - 1);
         const utc_value = Date.UTC(1899, 11, 31) + utc_days * 86400000;
         return new Date(utc_value).toISOString().slice(0, 10);
-    } catch (error) {
+    } catch {
         return "" + excelDate;
     }
 };
 export const safeParseFloat = (unsafeFloatString: string): number => {
     try {
         return parseFloat(unsafeFloatString)
-    } catch (error) {
+    } catch {
         return NaN
     }
 };
 export const safeParseInt = (unsafeFloatString: string): number => {
     try {
         return parseInt(unsafeFloatString)
-    } catch (error) {
+    } catch {
         return NaN
     }
 };
