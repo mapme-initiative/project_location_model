@@ -1,11 +1,12 @@
-import { ErrorObject } from "ajv";
+import { ErrorObject, ValidateFunction } from "ajv";
 import Utils from "../../../services/util/Utils.ts";
 
 const fs   = require("fs");
 const path = require("path");
 const assetsDir = path.resolve(__dirname, "../../assets");
-function loadFile(filename: string): Buffer {
-    return fs.readFileSync(path.join(assetsDir, filename));
+function loadFile(filename: string): ArrayBuffer {
+    const buf: Buffer = fs.readFileSync(path.join(assetsDir, filename));
+    return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
 }
 
 // ============================================================================
@@ -113,10 +114,10 @@ describe("Utils", () => {
     describe("toValidatedFeature", () => {
         it("returns feature if validator returns true", () => {
             const feature = { foo: "bar" };
-            expect(Utils.toValidatedFeature(feature, () => true as any)).toBe(feature);
+            expect(Utils.toValidatedFeature(feature, (() => true) as unknown as ValidateFunction<unknown>)).toBe(feature);
         });
         it("returns null if validator returns false", () => {
-            expect(Utils.toValidatedFeature({}, () => false as any)).toBeNull();
+            expect(Utils.toValidatedFeature({}, (() => false) as unknown as ValidateFunction<unknown>)).toBeNull();
         });
     });
 
