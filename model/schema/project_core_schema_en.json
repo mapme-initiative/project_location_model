@@ -15,7 +15,7 @@
         },
         "donor_project_no": {
             "description": "Every project location must be assigned to its respective BMZ project number.",
-            "type": "string"
+            "type": "number"
         },
         "data_provider": {
             "description": "Legal Entity who owns the data provided here (= legal authorship).",
@@ -27,18 +27,17 @@
         },
         "activity_start_date": {
             "description": "Aprox. planned or actual start date of implementation of activities on the ground. This can be e.g. the date when construction work is planned to begin. For no information enter 2100-01-01.",
-            "format": "date",
-            "type": "string"
+            "instanceof": "Date"
+
         },
         "activity_end_date": {
             "description": "Aprox. planned or actual end date of activities on the ground. This can be e.g. the date when the project is planned to cease implementation activities. For no information enter 2100-01-01.",
-            "format": "date",
-            "type": "string"
+            "instanceof": "Date"
         },
         "date_of_data_collection": {
             "description": "Date of data collection or latest update (if date of data collection is unknown). In case only the year is available please choose the 1st of january e.g. 2022-01-01.",
-            "format": "date",
-            "type": "string"
+            "instanceof": "Date"
+
         },
         "filenameOfAdditionalGeoData": {
             "description": "Filename of the KML file where the associated geometry information is found.",
@@ -55,21 +54,21 @@
             "type": "string"
         },
         "location_type_theme": {
-            "description": "Sectoral / cross-sectoral location type preselection field, see table sheets 'Location Types' & KC Themes. If there is no fit,  select '_Generic/Crosssect.' here and then 'other physical/immaterial' in the next column.",
+            "description": "Sectoral_cross-sectoral location type preselection field, see table sheets 'Location Types' & KC Themes. If there is no fit,  select '_Generic/Crosssect.' here and then 'other physical/immaterial' in the next column.",
             "type": "string",
             "enum": [
-                "_Generic / Cross_Sectoral",
-                "Agriculture / Rural_Development",
-                "Aquaculture / Fishery",
+                "_Generic_Cross_Sectoral",
+                "Agriculture_Rural_Development",
+                "Aquaculture_Fishery",
                 "Biodiversity_Conservation",
                 "Education",
                 "Energy",
                 "Financial_Sector_Development",
-                "Governance / Decentralization",
+                "Governance_Decentralization",
                 "Health",
-                "Mobility / Transport",
+                "Mobility_Transport",
                 "Protected_and_Conserved_Areas",
-                "Peace / Displacement / Fragility",
+                "Peace_Displacement_Fragility",
                 "Social_Protection",
                 "Urban_Infrastructure",
                 "Waste",
@@ -77,8 +76,6 @@
             ]
         },
         "location_type_name": {
-            "attribute_name": "Location Type Name",
-            "attribute_code": "location_type_name",
             "description": "After selecting the KC Theme, choose the most appropriate location type, see table sheet 'Location Types'. If there is no fit please select 'other phys./imm.'",
             "type": "string",
             "enum": [
@@ -345,40 +342,24 @@
         "uniqueId": {
             "description": "For new locations, this column is empty. For updates, your KfW counterpart will provide you with a list of unique_id numbers in this file to ensure that updated location IDs match with the former ones.",
             "type": "string"
-        },
-        "latitude": {
-            "attribute_name": "Latitude",
-            "attribute_code": "latitude",
-            "description": "Enter the Latitude (at least 5 digits!) measured with a GPS device (or centroid or admin unit polygon for approximate locations). Use WGS 84 as the Coordinate Reference System (EPSG:4326).",
-            "type": "number",
-            "minimum": -90,
-            "maximum": 90
-        },
-        "longitude": {
-            "attribute_name": "Longitude",
-            "attribute_code": "longitude",
-            "description": "Enter the Longitude (at least 5 digits!) measured with a GPS device (or centroid or admin unit polygon for approximate locations). Use WGS 84 as the Coordinate Reference System (EPSG:4326).",
-            "type": "number",
-            "minimum": -180,
-            "maximum": 180
         }
     },
     "required": [
-        "f_id",
-        "scheme_version",
-        "donor_project_no",
-        "project_acronym",
-        "data_provider",
-        "publishing_restrictions",
-        "date_of_data_collection",
-        "related_community",
-        "location_name",
-        "location_activity_status",
-        "activity_start_date",
-        "activity_end_date",
-        "activity_description",
-        "location_type_name",
-        "geographic_exactness"
+      "scheme_version",
+      "donor_project_no",
+      "project_acronym",
+      "data_provider",
+      "publishing_restrictions",
+      "date_of_data_collection",
+      "related_community",
+      "location_name",
+      "location_activity_status",
+      "activity_start_date",
+      "activity_end_date",
+      "activity_description",
+      "location_type_theme",
+      "location_type_name",
+      "geographic_exactness"
     ],
     "title": "Project Location Model",
     "type": "object"

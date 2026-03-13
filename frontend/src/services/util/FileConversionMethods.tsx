@@ -1,15 +1,5 @@
-/* eslint-disable  @typescript-eslint/no-explicit-any */
-export const excelDateToString = (excelDate: number): string => {
-    try {
-        if (typeof excelDate !== 'number' || isNaN(excelDate)) return String(excelDate);
-        // Excel's day 1 is 1900-01-01, but JS Date.UTC(1899, 11, 31) is day 0
-        const utc_days = Math.floor(excelDate - 1);
-        const utc_value = Date.UTC(1899, 11, 31) + utc_days * 86400000;
-        return new Date(utc_value).toISOString().slice(0, 10);
-    } catch {
-        return "" + excelDate;
-    }
-};
+import Papa from "papaparse";
+
 export const safeParseFloat = (unsafeFloatString: string): number => {
     try {
         return parseFloat(unsafeFloatString)
@@ -17,17 +7,15 @@ export const safeParseFloat = (unsafeFloatString: string): number => {
         return NaN
     }
 };
-export const safeParseInt = (unsafeFloatString: string): number => {
-    try {
-        return parseInt(unsafeFloatString)
-    } catch {
-        return NaN
-    }
-};
+
+
 // Transform CSV/Excel data to use location with nested latitude and longitude
-export const transformCsvToLocation = (data: any[]) => {
-    return data.map(row => {
-        const { latitude, longitude, budgetShare, dac5PurposeCode, sector, location_type, ...rest } = row;
+/* eslint-disable  @typescript-eslint/no-explicit-any */
+export const transformCsvToLocation = (data: string | ArrayBuffer | null | undefined) => {
+    const parsedData:Array<any> = Papa.parse(data as string, { header: true, dynamicTyping: true }).data;
+
+    return parsedData.map(row => {
+        const { latitude, longitude, ...rest } = row;
 
         return {
             type: "Feature",
@@ -36,13 +24,6 @@ export const transformCsvToLocation = (data: any[]) => {
                 coordinates: [safeParseFloat(longitude), safeParseFloat(latitude)]
             },
             properties: {
-                budgetShare: safeParseFloat(budgetShare),
-                dac5PurposeCode: safeParseInt(dac5PurposeCode),
-                sector_location:
-                {
-                    sector: sector,
-                    location_type: location_type
-                },
                 ...rest
             }
         };

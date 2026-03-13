@@ -30,6 +30,8 @@ This directory contains the source files and configuration for generating the Pr
 
 3. Build the documentation:
    ```bash
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   cargo install mdbook
    mdbook build
    ```
 

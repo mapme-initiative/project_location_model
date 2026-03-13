@@ -1,7 +1,8 @@
-import { ErrorObject, ValidateFunction } from "ajv";
+import {ErrorObject, ValidateFunction} from "ajv";
 import * as xlsx from "xlsx";
-import { WorkBook } from "xlsx";
-import { excelDateToString, safeParseFloat } from "./FileConversionMethods.tsx";
+import {WorkBook} from "xlsx";
+import {safeParseFloat} from "./FileConversionMethods.tsx";
+import * as ExcelJS from 'exceljs';
 
 export enum OGMFileTypes {
     CSV = "text/csv",
@@ -18,159 +19,283 @@ export type SupportedLangs = "en" | "fr";
 // ============================================================================
 // Excel Conversion Functions
 // ============================================================================
-
-function getDataBySheetName(workbook: WorkBook, sheetName: string) {
-    const excelData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { range: 2 });
-    return excelData.map(toGeoFeature);
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toGeoFeature(row: any) {
-    const {
-        primaryKey,
-        kfwProjectNoINPRO,
-        uniqueId,
-        latitude,
-        longitude,
-        plannedOrActualEndDate,
-        plannedOrActualStartDate,
-        dateOfDataCollection,
-        projectSpecificLocationIdentifier,
-        ...rest
-    } = row;
-
-    return {
-        type: "Feature",
-        geometry: {
-            type: "Point",
-            coordinates: [safeParseFloat(longitude), safeParseFloat(latitude)]
-        },
-        properties: {
-            primaryKey: primaryKey !== undefined && primaryKey !== null ? primaryKey.toString() : undefined,
-            kfwProjectNoINPRO: kfwProjectNoINPRO !== undefined && kfwProjectNoINPRO !== null ? kfwProjectNoINPRO?.toString() : undefined,
-            uniqueId: uniqueId !== undefined && uniqueId !== null ? uniqueId.toString() : undefined,
-            plannedOrActualEndDate: excelDateToString(plannedOrActualEndDate),
-            plannedOrActualStartDate: excelDateToString(plannedOrActualStartDate),
-            dateOfDataCollection: excelDateToString(dateOfDataCollection),
-            projectSpecificLocationIdentifier: projectSpecificLocationIdentifier !== undefined && projectSpecificLocationIdentifier !== null ? projectSpecificLocationIdentifier.toString() : undefined,
-            ...rest
-        }
-    };
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function removeWhiteSpaceInFeatureProperty(f: any): string {
-    return f.properties.kfwProjectNoINPRO.replaceAll(" ", "");
-}
-
-export function excelToGeoJson(data: string | ArrayBuffer | null | undefined, lang: SupportedLangs) {
-    const wb = xlsx.read(
-        // Support both Buffer (Node.js / testing) and binary string (browser)
-        typeof data === 'string' ? data as string : data,
-        { type: typeof data === 'string' ? "binary" : "buffer" }
-    );
-    const sheetName = wb.SheetNames[1];
-    const sheetNameArray: Array<string> = ["fill-me", "fill-me Remplissez-moi"];
-    const hasCorrectSheet = sheetNameArray.includes(sheetName);
-    const sheetNameMap = {
+export default class Utils {
+    static sheetNameMap = {
         en: "fill-me",
         fr: "fill-me Remplissez-moi",
     };
+    static sheetNameArray: Array<string> = ["fill-me", "fill-me Remplissez-moi"];
 
-    if (!wb) {
-        throw new Error('Workbook is null or undefined');
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    static isExcelObjectWithProperties(obj: any): boolean {
+        return Object.keys(obj).length > 1;
     }
-    if (!hasCorrectSheet) {
-        throw new Error("The selected Excel file does not contain a valid sheet. Please ensure the sheet is named either 'fill-me' or 'fill-me Remplissez-moi'.");
+    static getDataBySheetNameByXSLX(workbook: WorkBook, sheetName: string) {
+        const data = xlsx.utils
+            .sheet_to_json(workbook.Sheets[sheetName], {range: 2, raw: false, UTC: true, dateNF:"yyyy-mm-dd"})
+            .filter(this.isExcelObjectWithProperties);
+        return data;
     }
 
-    if (!(lang in sheetNameMap)) {
-        throw new Error(`Unsupported language: ${lang}. Supported languages are: ${Object.keys(sheetNameMap).join(', ')}`);
+
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    static toGeoFeature(row: any) {
+        const {
+            latitude,
+            longitude,
+            ...rest
+        } = row;
+
+        return {
+            type: "Feature",
+            geometry: {
+                type: "Point",
+                coordinates: [safeParseFloat(longitude), safeParseFloat(latitude)]
+            },
+            properties: {
+                ...rest
+            }
+        };
     }
 
-    const expectedSheetName = sheetNameMap[lang];
 
-    if (!wb.SheetNames.includes(expectedSheetName)) {
-        throw new Error(
-            `Sheet "${expectedSheetName}" not found for language ${lang}. ` +
-            `Available sheets are: ${wb.SheetNames.join(', ')}`
+    public static excelToJson(data: string | ArrayBuffer | null | undefined, lang: SupportedLangs) {
+        const {wb, expectedSheetName} = this.useXlsxLbToConvert(data, lang);
+        return this.getDataBySheetNameByXSLX(wb, expectedSheetName);
+    }
+
+
+    public static excelToGeoJson(data: string | ArrayBuffer | null | undefined, lang: SupportedLangs) {
+        const {wb, expectedSheetName} = this.useXlsxLbToConvert(data, lang);
+        return this.getDataBySheetNameByXSLX(wb, expectedSheetName).map(this.toGeoFeature);
+    }
+    public static excelJSToJSON(data: string | ArrayBuffer | null | undefined, lang: SupportedLangs) {
+        return  this.useExcelJsTo(data, lang);
+    }
+    private static async useExcelJsTo(data: string | ArrayBuffer | null | undefined, lang: SupportedLangs) {
+        // Konvertiere die Daten mit ExcelJS in ein JavaScript-Array
+        // WICHTIG: Überspringe Data Validations für bessere Performance
+        const wb = new ExcelJS.Workbook();
+        await wb.xlsx.load(data as ArrayBuffer, {
+            // Überspringe Features, die wir nicht brauchen
+            ignoreNodes: [
+                'dataValidations',
+                'headerFooter',
+                'pageSetup',
+                'pageMargins',
+                // NEU: alle weiteren unnötigen Nodes
+                'conditionalFormattings', // oft sehr groß in Formular-Sheets
+                'drawing',                // Charts, Bilder
+                'hyperlinks',
+                'tableParts',
+                'autoFilter',
+                'mergeCells',
+                'sheetProtection',
+                'legacyDrawing',
+                'extLst',                 // Erweiterungen
+                'rowBreaks',
+                'colBreaks',
+                'picture',
+            ]
+        });
+        const isLangSupported = this.sheetNameArray.includes(this.sheetNameMap[lang]);
+
+
+        if (!wb) {
+            throw new Error('Workbook is null or undefined');
+        }
+        if (!isLangSupported) {
+            throw new Error("The selected Excel file does not contain a valid sheet. Please ensure the sheet is named either 'fill-me' or 'fill-me Remplissez-moi'.");
+        }
+
+        if (!(lang in this.sheetNameMap)) {
+            throw new Error(`Unsupported language: ${lang}. Supported languages are: ${Object.keys(this.sheetNameMap).join(', ')}`);
+        }
+
+        const expectedSheetName = this.sheetNameMap[lang];
+
+        if (!wb.worksheets.some(sheet => sheet.name === this.sheetNameMap[lang])) {
+            throw new Error(
+                `Sheet "${expectedSheetName}" not found for language ${lang}. ` +
+                `Available sheets are: ${wb.worksheets.map(sheet => sheet.name).join(', ')}`
+            );
+        }
+
+        return this.getDataBySheetNameByExcelJS(wb, expectedSheetName).filter(this.isExcelObjectWithProperties);
+
+
+    }
+    private static getDataBySheetNameByExcelJS(workbook: ExcelJS.Workbook, sheetName: string) {
+        // Hole NUR das "fill-me" Sheet
+        const worksheet = workbook.getWorksheet(sheetName);
+
+        if (!worksheet) {
+            throw new Error("Error: 'fill-me' worksheet not found in the Excel file.");
+        }
+
+        // Einmaliger Bulk-Zugriff: komplettes Sheet als 2D-Array (1-basiert, sparse)
+        const allValues = worksheet.getSheetValues() as any[][];
+
+        // Header aus Zeile 3 lesen
+        const headerRow = allValues[3];
+        if (!headerRow || headerRow.length === 0) return [];
+
+        // Header-Map aufbauen: colIndex → headerName
+        const headers: string[] = [];
+        for (let i = 1; i < headerRow.length; i++) {
+            if (headerRow[i] != null) {
+                headers[i] = headerRow[i].toString();
+            }
+        }
+
+        const jsonData: any[] = [];
+        const rowCount = worksheet.actualRowCount;
+
+        for (let rowIndex = 4; rowIndex <= rowCount; rowIndex++) {
+            const row = allValues[rowIndex];
+            if (!row) continue; // leere Zeile (sparse array)
+
+            const rowData: any = {};
+            let hasData = false;
+
+            for (let colIndex = 1; colIndex < row.length; colIndex++) {
+                const header = headers[colIndex];
+                if (!header) continue;
+
+                const cellValue = row[colIndex];
+                if (cellValue == null) continue;
+
+                // Gleiche Typ-Behandlung wie bisher
+                if (cellValue instanceof Date) {
+                    rowData[header] = cellValue;
+                } else if (typeof cellValue === 'object' && 'richText' in cellValue) {
+                    rowData[header] = cellValue.richText.map((t: any) => t.text).join('');
+                } else if (typeof cellValue === 'object' && 'result' in cellValue) {
+                    rowData[header] = cellValue.result;
+                } else {
+                    rowData[header] = cellValue;
+                }
+
+                hasData = true;
+            }
+
+            if (hasData) {
+                jsonData.push(rowData);
+            }
+        }
+
+        return jsonData;
+    }
+
+
+    private static useXlsxLbToConvert(data: string | ArrayBuffer, lang: "en" | "fr") {
+
+
+        const wb = xlsx.read(
+            // Support both Buffer (Node.js / testing) and binary string (browser)
+            typeof data === 'string' ? data as string : data,
+            {type: typeof data === 'string' ? "binary" : "buffer"}
         );
+        const isLanguageSupported = this.sheetNameArray.includes(this.sheetNameMap[lang]);
+
+
+        if (!wb) {
+            throw new Error('Workbook is null or undefined');
+        }
+        if (!isLanguageSupported) {
+            throw new Error("The selected Excel file does not contain a valid sheet. Please ensure the sheet is named either 'fill-me' or 'fill-me Remplissez-moi'.");
+        }
+
+        if (!(lang in this.sheetNameMap)) {
+            throw new Error(`Unsupported language: ${lang}. Supported languages are: ${Object.keys(this.sheetNameMap).join(', ')}`);
+        }
+
+        const expectedSheetName = this.sheetNameMap[lang];
+
+        if (!wb.SheetNames.includes(expectedSheetName)) {
+            throw new Error(
+                `Sheet "${expectedSheetName}" not found for language ${lang}. ` +
+                `Available sheets are: ${wb.SheetNames.join(', ')}`
+            );
+        }
+        return {wb, expectedSheetName};
     }
 
-    return getDataBySheetName(wb, expectedSheetName);
-}
+
 
 // ============================================================================
 // Validation Utility Functions
 // ============================================================================
-
-export function formatError(error: ErrorObject): string {
-    const path = error.instancePath ? ` at "${error.instancePath}"` : "";
-    const message = error.message ? `: ${error.message}` : "";
-    return `Error${path}${message}`;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function toValidatedFeature(feature: any, validateProject: ValidateFunction<unknown>): any | null {
-    const isValid = validateProject(feature);
-    return isValid ? feature : null;
-}
-
-export function notNull<T>(value: T | null): value is T {
-    return value !== null;
-}
-
-export function notUndefined<T>(value: T | undefined): value is T {
-    return value !== undefined;
-}
-
-/**
- * Format AJV errors for Excel/CSV with row numbers
- */
-export function formatAjvErrorsWithRow(errors: ErrorObject[], rowNumber: number): string[] {
-    if (!errors) {
-        return [];
-    }
-
-    // Check if there are any coordinate-related errors
-    const hasCoordinateErrors = errors.some(error =>
-    (error.instancePath && (
-        error.instancePath.startsWith("/geometry/coordinates") ||
-        error.instancePath === "/geometry/type" ||
-        (error.instancePath === "/geometry" &&
-            (error.message?.includes("required property") ||
-                error.message?.includes("must match exactly one schema") ||
-                error.message?.includes("must be null")))
-    ))
-    );
-
-    // Initialize the result array
-    const resultErrors: string[] = [];
-
-    // If coordinate errors exist, add a single clear message
-    if (hasCoordinateErrors) {
-        resultErrors.push(`Row ${rowNumber}: Invalid or missing coordinates (latitude/longitude values). The project location is not printed on the map.`);
-    }
-
-    // Add all non-coordinate related errors
-    errors.forEach(error => {
-        // Skip coordinate-related errors since we've already added a consolidated message for them
-        if (error.instancePath && (
-            error.instancePath.startsWith("/geometry/coordinates") ||
-            error.instancePath === "/geometry/type" ||
-            (error.instancePath === "/geometry" &&
-                (error.message?.includes("required property") ||
-                    error.message?.includes("must match exactly one schema") ||
-                    error.message?.includes("must be null")))
-        )) {
-            return; // Skip this error
+    public static toDateObj(key, value){
+    const isoDatePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
+    // Wenn der Wert ein String ist und dem Muster entspricht, konvertiere ihn
+        if (typeof value === 'string' && isoDatePattern.test(value)) {
+            return new Date(value);
         }
-
-        // Format and add other errors
+        return value;
+    }
+    public static formatError(error: ErrorObject): string {
         const path = error.instancePath ? ` at "${error.instancePath}"` : "";
         const message = error.message ? `: ${error.message}` : "";
-        resultErrors.push(`Row ${rowNumber}${path}${message}`);
-    });
+        return `Error${path}${message}`;
+    }
 
-    return resultErrors;
+    public static toValidatedFeature(feature: any, validateProject: ValidateFunction<unknown>): any | null {
+        const isValid = validateProject(feature);
+        return isValid ? feature : null;
+    }
+
+    public static notNull<T>(value: T | null): value is T {
+        return value !== null;
+    }
+
+    public static notUndefined<T>(value: T | undefined): value is T {
+        return value !== undefined;
+    }
+
+    /**
+     * Format AJV errors for Excel/CSV with row numbers
+     */
+    public static formatAjvErrorsWithRow(errors: ErrorObject[], rowNumber: number): string[] {
+        if (!errors) {
+            return [];
+        }
+
+        // Check if there are any coordinate-related errors
+        const hasCoordinateErrors = errors.some(error =>
+            (error.instancePath && (
+                error.instancePath.startsWith("/geometry/coordinates") ||
+                error.instancePath === "/geometry/type" ||
+                (error.instancePath === "/geometry" &&
+                    (error.message?.includes("required property") ||
+                        error.message?.includes("must match exactly one schema") ||
+                        error.message?.includes("must be null")))
+            ))
+        );
+
+        const resultErrors: string[] = [];
+
+        if (hasCoordinateErrors) {
+            resultErrors.push(`Row ${rowNumber}: Invalid or missing coordinates (latitude/longitude values). The project location is not printed on the map.`);
+        }
+
+        errors.forEach(error => {
+            if (error.instancePath && (
+                error.instancePath.startsWith("/geometry/coordinates") ||
+                error.instancePath === "/geometry/type" ||
+                (error.instancePath === "/geometry" &&
+                    (error.message?.includes("required property") ||
+                        error.message?.includes("must match exactly one schema") ||
+                        error.message?.includes("must be null")))
+            )) {
+                return;
+            }
+
+            const path = error.instancePath ? ` at "${error.instancePath}"` : "";
+            const message = error.message ? `: ${error.message}` : "";
+            resultErrors.push(`Row ${rowNumber}${path}${message}`);
+        });
+
+        return resultErrors;
+    }
 }

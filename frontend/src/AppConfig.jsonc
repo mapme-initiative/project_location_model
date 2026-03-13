@@ -1,0 +1,6 @@
+{
+  "columns": {
+    //spalte aus der die IDs gezogen werden, welche in der email landen.
+    "for_email": "donor_project_no"
+  }
+}

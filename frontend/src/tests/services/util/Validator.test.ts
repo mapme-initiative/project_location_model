@@ -1,9 +1,15 @@
 import { describe, expect, it, jest, beforeEach } from "@jest/globals";
 import { getProjectValidator } from "../../../services/util/Validator.ts";
+import Utils from "../../../services/util/Utils.ts";
 import validateDataEng from "../../assets/validate_en.json";
 import validateDataFr from "../../assets/validate_data_fr.json";
 import * as fs from "fs";
 import * as path from "path";
+
+// ISO-Datetime-Strings in echte Date-Objekte konvertieren (für instanceof: "Date" im Schema)
+function withDates<T>(data: T): T {
+    return JSON.parse(JSON.stringify(data), Utils.toDateObj);
+}
 
 // Mock fetch for testing - simulates loading from public/schemas/
 const mockFetch = (url: string) => {
@@ -43,7 +49,7 @@ describe("getProjectValidator", () => {
         const validator = await getProjectValidator("en") as any;
         expect(typeof validator).toBe("function");
 
-        const valid = validator(validateDataEng);
+        const valid = validator(withDates(validateDataEng));
         const invalid = validator({});
         expect(valid).toBe(true);
         expect(invalid).toBe(false);
@@ -55,7 +61,7 @@ describe("getProjectValidator", () => {
         const validator = await getProjectValidator("fr") as any;
         expect(typeof validator).toBe("function");
 
-        const valid = validator(validateDataFr);
+        const valid = validator(withDates(validateDataFr));
         const invalid = validator({});
         expect(valid).toBe(true);
         expect(invalid).toBe(false);
@@ -79,7 +85,7 @@ describe("getProjectValidator", () => {
         global.fetch = jest.fn((url) => mockFetch(url as string)) as any;
 
         const validator = await getProjectValidator("en") as any;
-        const ok = validator(validateDataEng);
+        const ok = validator(withDates(validateDataEng));
         const bad = validator({ other: "x" });
         expect(ok).toBe(true);
         expect(bad).toBe(false);

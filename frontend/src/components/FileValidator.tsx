@@ -1,12 +1,11 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 import './scss/FileValidator.scss'
 
-import React, { useState } from "react";
-import Papa from "papaparse";
+import React, {useState} from "react";
 import MapComponent from "./MapComponent";
-
-import { transformCsvToLocation, } from "../services/util/FileConversionMethods";
-import { saveAs } from 'file-saver';
+import Utils, {OGMFileTypes, SupportedLangs} from "../services/util/Utils.ts";
+import {transformCsvToLocation} from "../services/util/FileConversionMethods";
+import {saveAs} from 'file-saver';
 import {
 	Button,
 	Dialog,
@@ -21,19 +20,11 @@ import {
 } from '@mui/material';
 
 import SendMailButton from "./SendMailButton.tsx";
-import {
-	excelToGeoJson,
-	OGMFileTypes,
-	SupportedLangs,
-	formatError,
-	toValidatedFeature,
-	notNull,
-	notUndefined,
-	formatAjvErrorsWithRow,
-	removeWhiteSpaceInFeatureProperty
-} from "../services/util/Utils.ts";
-import { getProjectValidator } from "../services/util/Validator.ts";
+import {getCoreValidator, getProjectValidator} from "../services/util/Validator.ts";
 import FileUpload from "./FileUpload.tsx";
+import {getAppConfig} from "../App.tsx";
+import {Processing} from "./elements/Processing.tsx";
+
 
 export default function FileValidator(): React.ReactElement {
 	const [lang, setLang] = useState<SupportedLangs>('en');
@@ -42,12 +33,13 @@ export default function FileValidator(): React.ReactElement {
 	const [enableEMailButton, setEnableEMailButton] = useState<boolean>(false);
 	const [openNoSheetDialog, setOpenNoSheetDialog] = React.useState(false);
 	const [inProNumbers, setInProNumbers] = useState<Set<string> | null>(null);
+	const [isProcessing, setIsProcessing] = useState(false);
 
 
 	function handleCSVFiles(data: string | ArrayBuffer | null | undefined) {
 		try {
-			const parsedData = Papa.parse(data as string, { header: true }).data;
-			const transformedData = transformCsvToLocation(parsedData);
+
+			const transformedData = transformCsvToLocation(data);
 			setGeoJsonDataWrap({ type: "FeatureCollection", features: transformedData })
 			validateParsedData(transformedData);
 		} catch (e) {
@@ -63,7 +55,7 @@ export default function FileValidator(): React.ReactElement {
 				const validateProject = validateProjectFunction
 
 				// Parse the uploaded GeoJSON
-				const geoJsonData = JSON.parse(text);
+				const geoJsonData = JSON.parse(text,Utils.toDateObj);
 
 				// Check if the input is a Feature or a FeatureCollection
 				switch (geoJsonData.type) {
@@ -75,7 +67,7 @@ export default function FileValidator(): React.ReactElement {
 						} else {
 							// Format validation errors
 							const formattedErrors = (validateProject.errors || [])
-								.map(formatError)
+								.map(Utils.formatError)
 								.join("\n");
 							setValidationResult(`GeoJSON Feature Validation Errors:\n${formattedErrors}`);
 						}
@@ -83,8 +75,8 @@ export default function FileValidator(): React.ReactElement {
 					}
 					case "FeatureCollection": {
 						const transformedFeatures = geoJsonData.features
-							.map((feature: any) => toValidatedFeature(feature, validateProject))
-							.filter(notNull); // Remove invalid features
+							.map((feature: any) => Utils.toValidatedFeature(feature, validateProject))
+							.filter(Utils.notNull); // Remove invalid features
 						if (transformedFeatures.length === geoJsonData.features.length) {
 							setValidationResult("GeoJSON FeatureCollection Data is valid!");
 						} else {
@@ -120,14 +112,41 @@ export default function FileValidator(): React.ReactElement {
 		setEnableEMailButton(false)
 
 	};
-	function handleExcelFiles(
+	async function handleExcelFiles(
 		data: string | ArrayBuffer | null | undefined
 	) {
 		try {
-			const transformedData = excelToGeoJson(data, lang)
-			console.log(transformedData);
-			validateParsedData(transformedData);
-			setGeoJsonDataWrap({ type: "FeatureCollection", features: transformedData });
+			setIsProcessing(true)
+			const jsonData = await Utils.excelJSToJSON(data, lang)
+			setIsProcessing(false)
+			console.log('Converted Excel data:', jsonData);
+
+			// Validierung mit dem Core Validator
+			const validator = getCoreValidator(lang);
+			validator
+				.then(coreValidate => {
+					const allErrors = jsonData.map((row, index) => {
+						coreValidate(row);
+						if(coreValidate.errors != null)
+							return Utils.formatAjvErrorsWithRow(coreValidate.errors, index + 1);
+						else
+							return
+					})
+					.filter(Utils.notUndefined)
+
+					if (allErrors.length == 0) { // Wenn keine Fehler gefunden wurden
+						setValidationResult("Excel/CSV-Validation successfull!");
+					} else {
+						setValidationResult(`Validation Errors:\n${allErrors.join("\n")}`);
+						setEnableEMailButton(false)
+					}
+					const features = jsonData.map(Utils.toGeoFeature)
+					setGeoJsonDataWrap({ type: "FeatureCollection", features });
+					return features;
+				})
+				.then(validateParsedData)
+
+
 		} catch (error) {
 			console.error(error)
 			if (error instanceof Error) {
@@ -177,42 +196,41 @@ export default function FileValidator(): React.ReactElement {
 		}
 	};
 
-	const validateParsedData = (data: any[]) => {
-		getProjectValidator(lang)
-			.then((validateProjectFunction) => {
-				const validateProject = validateProjectFunction
-				// Validate each row in the CSV/Excel data, flatMap sonst ist allErrors Object nicht 0 von der Länge bei keinen fehlern
-				const allErrors = data
-					.flatMap((row, index) => {
-						validateProject(row);
-						if (validateProject.errors != null)
-							return formatAjvErrorsWithRow(validateProject.errors, index + 1);
-						else
-							return
-						//TODO: Format the errors for this row
-					})
-					.filter(notUndefined)
-				console.log("validateParsedData().allErrors", allErrors)
-				if (allErrors.length == 0) { // Wenn keine Fehler gefunden wurden & alle datenreihen eine inproNumber haben, dann aktiviere den Mail-Button
-					setValidationResult("Excel/CSV data is valid!");
-					console.log("validateParsedData().data:", data)
-					const localInproNumbers = data.map(removeWhiteSpaceInFeatureProperty)
-					console.log("validateParsedData().localInproNumbers:", localInproNumbers)
-					if (localInproNumbers.filter((n: any) => n === undefined && n === null).length > 0) { // this here should never happened, it just represent the worst case of data cause we've finished our validation-process!
-						setValidationResult("Something terrible happend, we've inpro-nos which are null or undefined and they passed our validation. Please check your data again and send this crazy dataset to the it-support (us), please.")
-						return;
-					}
-					setEnableEMailButton(true)
-					setInProNumbers(new Set(localInproNumbers))
-				} else {
-					setValidationResult(`Validation Errors:\n${allErrors.join("\n")}`);
-					setEnableEMailButton(false)
+	const validateParsedData = async (data: any[]) => {
+		try {
+			const validateProject = await getProjectValidator(lang)
+			// Validate each row in the CSV/Excel data, flatMap sonst ist allErrors Object nicht 0 von der Länge bei keinen fehlern
+			const allErrors = data
+				.flatMap((row, index) => {
+					validateProject(row);
+					if (validateProject.errors != null)
+						return Utils.formatAjvErrorsWithRow(validateProject.errors, index + 1);
+					else
+						return
+					//TODO: Format the errors for this row
+				})
+				.filter(Utils.notUndefined)
+			console.log("validateParsedData().allErrors", allErrors)
+			if (allErrors.length == 0) { // Wenn keine Fehler gefunden wurden & alle datenreihen eine inproNumber haben, dann aktiviere den Mail-Button
+				setValidationResult("Excel/CSV data is valid!");
+				console.log("validateParsedData().data:", data)
+				const localInproNumbers = data.map(f=>f.properties[getAppConfig().columns.for_email])
+				console.log("validateParsedData().localInproNumbers:", localInproNumbers)
+				if (localInproNumbers.filter((n: any) => n === undefined && n === null).length > 0) { // this here should never happened, it just represent the worst case of data cause we've finished our validation-process!
+					setValidationResult("Something terrible happend, we've inpro-nos which are null or undefined and they passed our validation. Please check your data again and send this crazy dataset to the it-support (us), please.")
+					return;
 				}
+				setEnableEMailButton(true)
+				setInProNumbers(new Set(localInproNumbers))
+			} else {
+				setValidationResult(`Validation Errors:\n${allErrors.join("\n")}`);
+				setEnableEMailButton(false)
+			}
 
-			}).catch(e => {
-				console.error(e)
-				setValidationResult(`Error: looks like you internet connection problems: ${e.message}`)
-			})
+		} catch (e) {
+			console.error(e)
+			setValidationResult(`Error: looks like you internet connection problems: ${e.message}`)
+		}
 	};
 
 	const downloadProcessed = () => {
@@ -247,7 +265,7 @@ export default function FileValidator(): React.ReactElement {
 		<header>
 			<h1>Location Validator</h1>
 			<p>
-				The Location Validator is an open-source tool designed to validate project location data against the specifications of <a target={"_blank"} href={"https://mapme-initiative.github.io/project_location_model/quickstart.html"}>KfWs Open Project Location Model</a>. The validator accepts both Excel and GeoJSON files as input data. It identifies errors that need to be addressed, such as missing values in mandatory fields or incorrect formats for specific entries (e.g., dates not provided in the correct format). <br /><br />Errors should be corrected in the original file using Excel or GIS software, after which the files can be re-evaluated using this tool. Additionally, you can utilize the map feature within the tool to assess the geographic accuracy of the submitted project locations.
+				The Location Validator is an open-source tool designed to validate project location data against the specifications of <a target={"_blank"} href={"https://mapme-initiative.github.io/project_location_model/"}>KfWs Open Project Location Model</a>. The validator accepts both Excel and GeoJSON files as input data. It identifies errors that need to be addressed, such as missing values in mandatory fields or incorrect formats for specific entries (e.g., dates not provided in the correct format). <br /><br />Errors should be corrected in the original file using Excel or GIS software, after which the files can be re-evaluated using this tool. Additionally, you can utilize the map feature within the tool to assess the geographic accuracy of the submitted project locations.
 				Once all locations are valid, the "SEND EMAIL" button will appear blue. You can than send an email with the validated data to your project counterpart.<br /><br />
 				<strong>Important:</strong>
 			</p>
@@ -307,7 +325,7 @@ export default function FileValidator(): React.ReactElement {
 
 
 		{/* ____________________ Map ____________________ */}
-
+		{isProcessing && (<Processing/>)}
 		<div className='file_validator_map' style={{ height: '400px' }}>
 			<MapComponent geoJsonData={geoJsonDataWrap} />
 		</div>
