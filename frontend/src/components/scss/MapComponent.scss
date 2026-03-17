@@ -1,57 +1,88 @@
-// Map popup styles
-.map-popup {
-  max-width: 700px;
+// ============================================================
+// Sidebar – erscheint rechts neben der Karte
+// ============================================================
+.map-sidebar {
+  width: 0;
+  overflow: hidden;
+  transition: width 0.25s ease;
+  background: #fff;
+  border-left: none;
   font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
 
-  h3 {
-    margin: 0 0 10px 0;
-    padding-bottom: 5px;
+  &--open {
+    width: 360px;
+    min-width: 360px;
+    border-left: 1px solid #ddd;
+    overflow-y: auto;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 10px;
     border-bottom: 1px solid #eee;
-    font-size: 16px;
-    font-weight: bold;
-  }
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
 
-  .popup-content {
-    margin-top: 1.5em;
-  }
-
-  p {
-    margin: 5px 0;
-    font-size: 13px;
-    line-height: 1.4;
-  }
-
-  .popup-label {
-    font-weight: 600;
-    display: inline-block;
-    min-width: 170px;
-  }
-
-  .popup-value {
-    display: inline-block;
-  }
-
-  a {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 5px 10px;
-    background: #4a90e2;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 3px;
-    font-size: 13px;
-    
-    &:hover {
-      background: #3a80d2;
+    h3 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: bold;
+      color: #222;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
-}
 
-// Improve leaflet popup styling
-.leaflet-popup-content {
-  margin: 12px 15px;
-}
+  &__close {
+    flex-shrink: 0;
+    margin-left: 8px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    color: #666;
+    padding: 0 4px;
 
-.leaflet-container a.leaflet-popup-close-button {
-  padding: 6px;
-} 
+    &:hover {
+      color: #000;
+    }
+  }
+
+  &__content {
+    padding: 10px 16px 16px;
+  }
+
+  &__row {
+    display: flex;
+    flex-direction: column;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+
+  &__value {
+    font-size: 13px;
+    color: #222;
+    word-break: break-word;
+  }
+}
