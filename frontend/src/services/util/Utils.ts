@@ -227,10 +227,16 @@ export default class Utils {
 // Validation Utility Functions
 // ============================================================================
     public static toDateObj(key, value){
-    const isoDatePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
-    // Wenn der Wert ein String ist und dem Muster entspricht, konvertiere ihn
-        if (typeof value === 'string' && isoDatePattern.test(value)) {
-            return new Date(value);
+        if (typeof value !== 'string') return value;
+        // ISO-Datetime: "2019-12-13T00:00:00", "2019-12-13T00:00:00.000Z", "2019-12-13T00:00:00+01:00"
+        const isoDateTimePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/;
+        // Nur Datum: "2019-12-13"
+        const isoDateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/;
+        if (isoDateTimePattern.test(value) || isoDateOnlyPattern.test(value)) {
+            const date = new Date(value);
+            if (!isNaN(date.getTime())) {
+                return date;
+            }
         }
         return value;
     }
@@ -242,6 +248,13 @@ export default class Utils {
 
     public static toValidatedFeature(feature: any, validateProject: ValidateFunction<unknown>): any | null {
         const isValid = validateProject(feature);
+
+        if(isValid == false && validateProject.errors == null)
+            console.error("Validation failed but no errors provided by AJV");
+        if(isValid == false && validateProject.errors != null) {
+            console.log(Utils.formatAjvErrorsWithRow(validateProject.errors, -1).join("\n"));
+            throw new Error(Utils.formatAjvErrorsWithRow(validateProject.errors, -1).join("\n"));
+        }
         return isValid ? feature : null;
     }
 

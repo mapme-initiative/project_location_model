@@ -85,6 +85,7 @@ export async function getProjectValidator(lang: SupportedLangs): Promise<Validat
 
     // Create AJV instance and add both schemas
     const ajv = new Ajv({ allErrors: true });
+    addFormats(ajv);
     ajvKeywords(ajv, ["instanceof"]); // nur das benötigte Keyword laden
     instanceofDef.CONSTRUCTORS["Date"] = Date;
 
