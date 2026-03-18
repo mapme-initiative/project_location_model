@@ -7,7 +7,7 @@
             "description": "For new locations, this column will be empty. For updates,  KfW will provide you with the list of f_id numbers of this file to ensure that the updated field ids match with the former ones.",
             "type": "number"
         },
-        "schemeVersion": {
+        "scheme_version": {
             "type": "string",
             "enum": [
                 "3.0"
@@ -17,12 +17,47 @@
             "description": "Every project location must be assigned to its respective BMZ project number.",
             "type": "number"
         },
+        "project_acronym": {
+            "description": "Enter the acronym used for the name/title of the project (e.g. HREII) to be visible on your map. If the project has multiple phases, please add the number of the phase belonging to the before-stated KfW Project-No.",
+            "type": "string"
+        },
         "data_provider": {
             "description": "Legal Entity who owns the data provided here (= legal authorship).",
             "type": "string"
         },
-        "activity_description": {
-            "description": "A short description of the main project activity in this location, e.g., hydropower plant construction or construction of small irrigation systems.",
+        "publishing_restrictions": {
+            "description": "Indicates if the exact location is collected in fragile areas (e.g. of severe civil conflict or war) and should therefore be omitted from publicly available reports.",
+            "enum": [
+                "yes ",
+                "no"
+            ],
+            "type": "string"
+        },
+        "date_of_data_collection": {
+            "description": "Date of data collection or latest update (if date of data collection is unknown). In case only the year is available please choose the 1st of january e.g. 2022-01-01.",
+            "instanceof": "Date"
+
+        },
+        "related_community": {
+            "description": "Enter a community, village, hamlet or neighbourhood name that relates to this location, this can serve for manually add smaller administrative unit names that are not in global databases.",
+            "type": "string"
+        },
+        "location_name": {
+            "description": "Unique name of the project site and its (main) activity incl local MIS-/GIS-ID, if availabe. This will be used as reference for line and polygon data.",
+            "type": "string"
+        },
+        "location_activity_status": {
+            "description": "The location activity status according to the IATI standard. If you are unaware of the current status please choose 'NA'.",
+            "enum": [
+                "NA",
+                "Pipeline/identification",
+                "Implementation",
+                "Finalisation",
+                "Closed",
+                "Cancelled",
+                "Suspended",
+                "Other"
+            ],
             "type": "string"
         },
         "activity_start_date": {
@@ -34,23 +69,8 @@
             "description": "Aprox. planned or actual end date of activities on the ground. This can be e.g. the date when the project is planned to cease implementation activities. For no information enter 2100-01-01.",
             "instanceof": "Date"
         },
-        "date_of_data_collection": {
-            "description": "Date of data collection or latest update (if date of data collection is unknown). In case only the year is available please choose the 1st of january e.g. 2022-01-01.",
-            "instanceof": "Date"
-
-        },
-        "filenameOfAdditionalGeoData": {
-            "description": "Filename of the KML file where the associated geometry information is found.",
-            "type": "string"
-        },
-        "geographic_exactness": {
-            "description": "Use 'exact' if the exact coordinates are known + no security restrictions apply. Otherwise, use 'approximate (security)' or 'approx. (yet unknown)'. If the target area is an admin unit, use 'approx. (admin unit).'.",
-            "enum": [
-                "exact",
-                "approximate (yet unknown)",
-                "approximate (security)",
-                "approximate (admin unit)"
-            ],
+        "activity_description": {
+            "description": "A short description of the main project activity in this location, e.g., hydropower plant construction or construction of small irrigation systems.",
             "type": "string"
         },
         "location_type_theme": {
@@ -305,42 +325,14 @@
                 "watercourse"
             ]
         },
-        "location_activity_status": {
-            "description": "The location activity status according to the IATI standard. If you are unaware of the current status please choose 'NA'.",
+        "geographic_exactness": {
+            "description": "Use 'exact' if the exact coordinates are known + no security restrictions apply. Otherwise, use 'approximate (security)' or 'approx. (yet unknown)'. If the target area is an admin unit, use 'approx. (admin unit).'.",
             "enum": [
-                "NA",
-                "Pipeline/identification",
-                "Implementation",
-                "Finalisation",
-                "Closed",
-                "Cancelled",
-                "Suspended",
-                "Other"
+                "exact",
+                "approximate (yet unknown)",
+                "approximate (security)",
+                "approximate (admin unit)"
             ],
-            "type": "string"
-        },
-        "location_name": {
-            "description": "Unique name of the project site and its (main) activity incl local MIS-/GIS-ID, if availabe. This will be used as reference for line and polygon data.",
-            "type": "string"
-        },
-        "project_acronym": {
-            "description": "Enter the acronym used for the name/title of the project (e.g. HREII) to be visible on your map. If the project has multiple phases, please add the number of the phase belonging to the before-stated KfW Project-No.",
-            "type": "string"
-        },
-        "publishing_restrictions": {
-            "description": "Indicates if the exact location is collected in fragile areas (e.g. of severe civil conflict or war) and should therefore be omitted from publicly available reports.",
-            "enum": [
-                "yes ",
-                "no"
-            ],
-            "type": "string"
-        },
-        "related_community": {
-            "description": "Enter a community, village, hamlet or neighbourhood name that relates to this location, this can serve for manually add smaller administrative unit names that are not in global databases.",
-            "type": "string"
-        },
-        "uniqueId": {
-            "description": "For new locations, this column is empty. For updates, your KfW counterpart will provide you with a list of unique_id numbers in this file to ensure that updated location IDs match with the former ones.",
             "type": "string"
         }
     },
