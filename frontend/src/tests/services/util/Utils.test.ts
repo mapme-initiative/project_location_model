@@ -141,6 +141,79 @@ describe("Utils", () => {
     });
 
     // -----------------------------------------------------------------------
+    describe("extractFieldName", () => {
+        it("extracts from /properties/field_name path", () => {
+            const error = { instancePath: "/properties/data_provider", keyword: "type" } as ErrorObject;
+            expect(Utils.extractFieldName(error)).toBe("data_provider");
+        });
+        it("extracts from /field_name path (core validator)", () => {
+            const error = { instancePath: "/donor_project_no", keyword: "type" } as ErrorObject;
+            expect(Utils.extractFieldName(error)).toBe("donor_project_no");
+        });
+        it("extracts missingProperty for required errors", () => {
+            const error = { instancePath: "", keyword: "required", params: { missingProperty: "scheme_version" } } as ErrorObject;
+            expect(Utils.extractFieldName(error)).toBe("scheme_version");
+        });
+        it("returns empty string for root path without required", () => {
+            const error = { instancePath: "", keyword: "type" } as ErrorObject;
+            expect(Utils.extractFieldName(error)).toBe("");
+        });
+    });
+
+    // -----------------------------------------------------------------------
+    describe("formatSingleError", () => {
+        it("formats required error with missing property name", () => {
+            const error = { keyword: "required", instancePath: "", params: { missingProperty: "data_provider" }, message: "must have required property 'data_provider'" } as ErrorObject;
+            const result = Utils.formatSingleError(error, 1);
+            expect(result).toBe('Row 1: Missing value for "data_provider".');
+        });
+        it("formats type error", () => {
+            const error = { keyword: "type", instancePath: "/properties/donor_project_no", params: { type: "number" }, message: "must be number" } as ErrorObject;
+            const result = Utils.formatSingleError(error, 2);
+            expect(result).toBe('Row 2: "donor_project_no" must be of type number.');
+        });
+        it("formats enum error with short allowed values list", () => {
+            const error = { keyword: "enum", instancePath: "/properties/geographic_exactness", params: { allowedValues: ["exact", "approximate (yet unknown)", "approximate (security)", "approximate (admin unit)"] }, message: "must be equal to one of the allowed values" } as ErrorObject;
+            const result = Utils.formatSingleError(error, 3);
+            expect(result).toContain('Row 3: "geographic_exactness" has an invalid value.');
+            expect(result).toContain("exact");
+            expect(result).toContain("approximate (admin unit)");
+        });
+        it("formats enum error with long list as doc reference", () => {
+            const longValues = Array.from({ length: 20 }, (_, i) => `value_${i}`);
+            const error = { keyword: "enum", instancePath: "/properties/location_type_name", params: { allowedValues: longValues }, message: "must be equal to one of the allowed values" } as ErrorObject;
+            const result = Utils.formatSingleError(error, 4);
+            expect(result).toContain("check the documentation");
+        });
+        it("formats instanceof Date error", () => {
+            const error = { keyword: "instanceof", instancePath: "/properties/date_of_data_collection", params: { instanceof: "Date" }, message: 'must pass "instanceof" keyword validation' } as ErrorObject;
+            const result = Utils.formatSingleError(error, 5);
+            expect(result).toBe('Row 5: "date_of_data_collection" must be a valid date (e.g. 2022-01-01).');
+        });
+        it("formats unknown keyword with fallback", () => {
+            const error = { keyword: "minLength", instancePath: "/properties/project_acronym", params: {}, message: "must NOT have fewer than 1 characters" } as ErrorObject;
+            const result = Utils.formatSingleError(error, 6);
+            expect(result).toBe('Row 6: "project_acronym" — must NOT have fewer than 1 characters.');
+        });
+    });
+
+    // -----------------------------------------------------------------------
+    describe("isCoordinateError", () => {
+        it("returns true for /geometry/coordinates path", () => {
+            expect(Utils.isCoordinateError({ instancePath: "/geometry/coordinates/0", message: "must be number" } as ErrorObject)).toBe(true);
+        });
+        it("returns true for /geometry/type path", () => {
+            expect(Utils.isCoordinateError({ instancePath: "/geometry/type", message: "must be string" } as ErrorObject)).toBe(true);
+        });
+        it("returns true for /geometry required property error", () => {
+            expect(Utils.isCoordinateError({ instancePath: "/geometry", message: "must have required property" } as ErrorObject)).toBe(true);
+        });
+        it("returns false for property path", () => {
+            expect(Utils.isCoordinateError({ instancePath: "/properties/name", message: "is required" } as ErrorObject)).toBe(false);
+        });
+    });
+
+    // -----------------------------------------------------------------------
     describe("formatAjvErrorsWithRow", () => {
         it("returns empty array for null errors", () => {
             expect(Utils.formatAjvErrorsWithRow(null as any, 1)).toEqual([]);
@@ -166,34 +239,48 @@ describe("Utils", () => {
             expect(result).toHaveLength(1);
             expect(result[0]).toContain("coordinates");
         });
-        it("formats non-coordinate errors with row number", () => {
+        it("formats required errors with human-readable message", () => {
             const errors = [
-                { instancePath: "/properties/name", message: "is required" },
+                { keyword: "required", instancePath: "", params: { missingProperty: "data_provider" }, message: "must have required property 'data_provider'" },
             ] as ErrorObject[];
-            expect(Utils.formatAjvErrorsWithRow(errors, 3)).toEqual([
-                'Row 3 at "/properties/name": is required',
-            ]);
+            const result = Utils.formatAjvErrorsWithRow(errors, 3);
+            expect(result).toEqual(['Row 3: Missing value for "data_provider".']);
         });
-        it("formats error without instancePath", () => {
-            const errors = [{ message: "some error" }] as ErrorObject[];
-            expect(Utils.formatAjvErrorsWithRow(errors, 7)).toEqual(["Row 7: some error"]);
+        it("formats type errors with expected type", () => {
+            const errors = [
+                { keyword: "type", instancePath: "/donor_project_no", params: { type: "number" }, message: "must be number" },
+            ] as ErrorObject[];
+            const result = Utils.formatAjvErrorsWithRow(errors, 7);
+            expect(result[0]).toContain('"donor_project_no" must be of type number');
         });
-        it("formats error without message", () => {
-            const errors = [{ instancePath: "/foo" }] as ErrorObject[];
-            expect(Utils.formatAjvErrorsWithRow(errors, 8)).toEqual(['Row 8 at "/foo"']);
+        it("formats enum errors with allowed values", () => {
+            const errors = [
+                { keyword: "enum", instancePath: "/geographic_exactness", params: { allowedValues: ["exact", "approximate (yet unknown)"] }, message: "must be equal to one of the allowed values" },
+            ] as ErrorObject[];
+            const result = Utils.formatAjvErrorsWithRow(errors, 1);
+            expect(result[0]).toContain("invalid value");
+            expect(result[0]).toContain("exact");
+        });
+        it("formats instanceof Date errors", () => {
+            const errors = [
+                { keyword: "instanceof", instancePath: "/date_of_data_collection", params: { instanceof: "Date" }, message: 'must pass "instanceof" keyword validation' },
+            ] as ErrorObject[];
+            const result = Utils.formatAjvErrorsWithRow(errors, 1);
+            expect(result[0]).toContain("valid date");
+            expect(result[0]).toContain("2022-01-01");
         });
         it("mixes coordinate and non-coordinate errors correctly", () => {
             const errors = [
                 { instancePath: "/geometry/coordinates", message: "must be array" },
-                { instancePath: "/properties/name",      message: "is required" },
+                { keyword: "required", instancePath: "", params: { missingProperty: "name" }, message: "must have required property 'name'" },
             ] as ErrorObject[];
             const result = Utils.formatAjvErrorsWithRow(errors, 4);
             expect(result).toHaveLength(2);
             expect(result[0]).toContain("coordinates");
-            expect(result[1]).toContain("/properties/name");
+            expect(result[1]).toContain('Missing value for "name"');
         });
         it("uses correct row number in all messages", () => {
-            const errors = [{ instancePath: "/x", message: "y" }] as ErrorObject[];
+            const errors = [{ keyword: "type", instancePath: "/x", params: { type: "string" }, message: "must be string" }] as ErrorObject[];
             expect(Utils.formatAjvErrorsWithRow(errors, 99)[0]).toMatch(/^Row 99/);
         });
     });

@@ -3,6 +3,7 @@
     //spalte aus der die IDs gezogen werden, welche in der email landen.
     "for_email": "donor_project_no"
   },
+  "host": "https://mapme-initiative.github.io",
   // shows xlsx-files for debugging purposes. Should be set to false for production.
   "DEBUG": true
 }

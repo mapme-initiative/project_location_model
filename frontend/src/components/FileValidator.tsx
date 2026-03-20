@@ -22,10 +22,15 @@ import {
 import SendMailButton from "./SendMailButton.tsx";
 import {getCoreValidator, getProjectValidator} from "../services/util/Validator.ts";
 import FileUpload from "./FileUpload.tsx";
-import {getAppConfig} from "../App.tsx";
+import {getAppConfig} from "../services/Config.ts";
 import {Processing} from "./elements/Processing.tsx";
 
 
+
+export function getValidationErrorHeader(lang: SupportedLangs): React.ReactElement {
+	const schemaDocUrl = `https://mapme-initiative.github.io/project_location_model/schemas/project_core_schema_${Utils.sanitizeLang(lang)}.html`;
+	return <p>Your data contains errors. Please correct them in your original file and re-upload.<br/>For field descriptions and examples, see: <a href={schemaDocUrl}>schema-definition</a></p>
+}
 export default function FileValidator(): React.ReactElement {
 	const [lang, setLang] = useState<SupportedLangs>('en');
 	const [validationResult, setValidationResult] = useState<string | null>(null);
@@ -66,10 +71,8 @@ export default function FileValidator(): React.ReactElement {
 							setGeoJsonDataWrap({ type: "FeatureCollection", features: [geoJsonData] }); // Wrap in FeatureCollection
 						} else {
 							// Format validation errors
-							const formattedErrors = (validateProject.errors || [])
-								.map(Utils.formatError)
-								.join("\n");
-							setValidationResult(`GeoJSON Feature Validation Errors:\n${formattedErrors}`);
+							const formattedErrors = Utils.formatAjvErrorsWithRow(validateProject.errors || [], 1);
+							setValidationResult(formattedErrors.join("\n"));
 						}
 						break;
 					}
@@ -137,7 +140,7 @@ export default function FileValidator(): React.ReactElement {
 					if (allErrors.length == 0) { // Wenn keine Fehler gefunden wurden
 						setValidationResult("Excel/CSV-Validation successfull!");
 					} else {
-						setValidationResult(`Validation Errors:\n${allErrors.join("\n")}`);
+						setValidationResult(`${allErrors.join("\n")}`);
 						setEnableEMailButton(false)
 					}
 					const features = jsonData.map(Utils.toGeoFeature)
@@ -224,7 +227,7 @@ export default function FileValidator(): React.ReactElement {
 				setEnableEMailButton(true)
 				setInProNumbers(new Set(localInproNumbers))
 			} else {
-				setValidationResult(`Validation Errors:\n${allErrors.join("\n")}`);
+				setValidationResult(allErrors.join("\n"));
 				setEnableEMailButton(false)
 			}
 
@@ -279,7 +282,7 @@ export default function FileValidator(): React.ReactElement {
 				<Select
 					labelId="lang-select-label"
 					value={lang}
-					onChange={e => setLang(e.target.value as 'en' | 'fr')}
+					onChange={e => setLang(Utils.sanitizeLang(String(e.target.value)))}
 					label="Language"
 				>
 					<MenuItem value="en">English</MenuItem>
@@ -309,18 +312,24 @@ export default function FileValidator(): React.ReactElement {
 			<div
 				style={{
 					...(validationResult.toLowerCase().includes("data is valid!") ? { backgroundColor: "rgba(0, 128, 0, 0.2)" } : {}),
-					...(validationResult.toLowerCase().includes("error") ? { backgroundColor: "rgba(128, 0, 0, 0.2)" } : {}),
+					...(validationResult.toLowerCase().includes("error") || validationResult.toLowerCase().includes("missing value") ? { backgroundColor: "rgba(128, 0, 0, 0.2)" } : {}),
 					maxHeight: '360px',
 					overflowY: 'auto',
 					overflowX: 'hidden',
 					marginTop: '0.5rem',
-					padding: '0.2rem',
+					padding: '0.5rem',
 					border: '1px solid #ccc',
 					borderRadius: '4px',
 				}}
 			>
 				<h3>Validation Result</h3>
-				<pre>{validationResult}</pre>
+				<pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'inherit', fontSize: '0.9rem' }}>
+					{getValidationErrorHeader(lang)}
+					<br/>
+					{validationResult.split('\n').map((line, i) =>
+						<span key={i}>{line}{'\n'}</span>
+					)}
+				</pre>
 			</div>
 		)}
 
