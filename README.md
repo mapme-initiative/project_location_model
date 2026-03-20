@@ -36,7 +36,7 @@ one of the column will be used in the email-button. This can be changed with con
 
 ## How example-excel-files work
 * the files are automatically copied from assets
-* to make them visible for the end-user - you've to add a link in the [FileValidator.tsx](../../src/components/FileValidator.tsx) file
+* to make them visible for the end-user - you've to add a link in the [FileValidator.tsx](frontend/src/components/FileValidator.tsx) file
 
 
 ### This project is built with [Vite](https://vitejs.dev/) and React using TypeScript. Below are instructions to run and manage the project locally.

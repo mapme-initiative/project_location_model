@@ -472,12 +472,24 @@ Before submitting a PR:
 
 ### Development Best Practices
 
+#### **1. Error Message Architecture**
+
+Validation error messages are generated in `Utils.ts` and displayed in `FileValidator.tsx`:
+
+- **`Utils.formatAjvErrorsWithRow()`** — Main entry point. Consolidates coordinate errors, then delegates to `formatSingleError()` for each non-geometry error.
+- **`Utils.formatSingleError()`** — Handles each AJV `error.keyword` type (`required`, `type`, `enum`, `instanceof`, `format`, `oneOf`/`anyOf`) with human-readable messages. Falls back to AJV's default message for unknown keywords.
+- **`Utils.extractFieldName()`** — Extracts field name from AJV error paths (handles both core `/field_name` and project `/properties/field_name` paths).
+- **`Utils.getValidationErrorHeader()`** — Returns a header with a link to schema documentation, language-aware.
+- **`Utils.isCoordinateError()`** — Predicate to identify geometry/coordinate errors for consolidation.
+
+Enum errors with >8 allowed values reference the documentation instead of listing all values inline.
+
 #### **2. Adding New Validation Rules**
 
 1. Update JSON schema with new constraints
 2. Add test cases for new rules
 3. Update documentation with examples
-4. Provide clear error messages in schema descriptions
+4. If the new rule uses a non-standard AJV keyword, add a case to `formatSingleError()` in `Utils.ts`
 
 #### **3. Performance Optimization**
 
