@@ -26,7 +26,7 @@ import {getAppConfig} from "../services/Config.ts";
 import {Processing} from "./elements/Processing.tsx";
 
 export function getValidationErrorHeader(lang: SupportedLangs): React.ReactElement {
-	const schemaDocUrl = `${getAppConfig().host}/project_location_model/schemas/project_core_schema_${lang}.html`;
+	const schemaDocUrl = `https://mapme-initiative.github.io/project_location_model/schemas/project_core_schema_${lang}.html`;
 	return <p>Your data contains errors. Please correct them in your original file and re-upload.<br/>For field descriptions and examples, see: <a href={schemaDocUrl}>schema-definition</a></p>
 }
 export default function FileValidator(): React.ReactElement {
