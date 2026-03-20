@@ -267,46 +267,119 @@ export default class Utils {
     }
 
     /**
-     * Format AJV errors for Excel/CSV with row numbers
+     * Extract the field name from an AJV error, handling both core and project validator paths.
+     * Core validator paths: "/field_name" or "" (root, for required errors)
+     * Project validator paths: "/properties/field_name"
+     */
+    static extractFieldName(error: ErrorObject): string {
+        // For "required" errors, the field name is in params.missingProperty
+        if (error.keyword === "required" && error.params?.missingProperty) {
+            return error.params.missingProperty;
+        }
+
+        // Extract from instancePath: "/properties/field_name" or "/field_name"
+        const path = error.instancePath || "";
+        const parts = path.split("/").filter(Boolean);
+
+        // Skip "properties" prefix if present
+        if (parts[0] === "properties" && parts.length > 1) {
+            return parts[1];
+        }
+        return parts[parts.length - 1] || "";
+    }
+
+    /**
+     * Format a single AJV error into a human-readable message.
+     */
+    static formatSingleError(error: ErrorObject, rowNumber: number): string {
+        const fieldName = Utils.extractFieldName(error);
+        const prefix = `Row ${rowNumber}`;
+
+        switch (error.keyword) {
+            case "required": {
+                return `${prefix}: Missing value for "${fieldName}".`;
+            }
+            case "type": {
+                const expectedType = error.params?.type || "unknown";
+                return `${prefix}: "${fieldName}" must be of type ${expectedType}.`;
+            }
+            case "enum": {
+                const allowed = error.params?.allowedValues;
+                if (allowed && allowed.length <= 8) {
+                    return `${prefix}: "${fieldName}" has an invalid value. Allowed values: ${allowed.join(", ")}.`;
+                }
+                return `${prefix}: "${fieldName}" has an invalid value. Please check the documentation for allowed values.`;
+            }
+            case "instanceof": {
+                if (error.params?.instanceof === "Date") {
+                    return `${prefix}: "${fieldName}" must be a valid date (e.g. 2022-01-01).`;
+                }
+                return `${prefix}: "${fieldName}" has an invalid format.`;
+            }
+            case "format": {
+                return `${prefix}: "${fieldName}" has an invalid format (expected: ${error.params?.format || "unknown"}).`;
+            }
+            case "oneOf":
+            case "anyOf": {
+                if (!fieldName) {
+                    return `${prefix}: Data does not match the expected schema.`;
+                }
+                return `${prefix}: "${fieldName}" does not match any of the expected formats.`;
+            }
+            default: {
+                // Fallback: use AJV's message but with cleaner formatting
+                const msg = error.message || "unknown validation error";
+                if (fieldName) {
+                    return `${prefix}: "${fieldName}" — ${msg}.`;
+                }
+                return `${prefix}: ${msg}.`;
+            }
+        }
+    }
+
+    /**
+     * Check if an AJV error is coordinate/geometry-related.
+     */
+    static isCoordinateError(error: ErrorObject): boolean {
+        return !!(error.instancePath && (
+            error.instancePath.startsWith("/geometry/coordinates") ||
+            error.instancePath === "/geometry/type" ||
+            (error.instancePath === "/geometry" &&
+                (error.message?.includes("required property") ||
+                    error.message?.includes("must match exactly one schema") ||
+                    error.message?.includes("must be null")))
+        ));
+    }
+
+    /**
+     * Get the validation error header with a documentation link.
+     */
+    public static getValidationErrorHeader(lang: SupportedLangs): string {
+        const schemaDocUrl = `https://mapme-initiative.github.io/project_location_model/schemas/project_core_schema_${lang}.html`;
+        return `Your data contains errors. Please correct them in your original file and re-upload.\nFor field descriptions and examples, see: ${schemaDocUrl}`;
+    }
+
+    /**
+     * Format AJV errors for Excel/CSV with row numbers.
+     * Produces human-readable messages grouped by error type.
      */
     public static formatAjvErrorsWithRow(errors: ErrorObject[], rowNumber: number): string[] {
         if (!errors) {
             return [];
         }
 
-        // Check if there are any coordinate-related errors
-        const hasCoordinateErrors = errors.some(error =>
-            (error.instancePath && (
-                error.instancePath.startsWith("/geometry/coordinates") ||
-                error.instancePath === "/geometry/type" ||
-                (error.instancePath === "/geometry" &&
-                    (error.message?.includes("required property") ||
-                        error.message?.includes("must match exactly one schema") ||
-                        error.message?.includes("must be null")))
-            ))
-        );
-
+        const hasCoordinateErrors = errors.some(Utils.isCoordinateError);
         const resultErrors: string[] = [];
 
         if (hasCoordinateErrors) {
-            resultErrors.push(`Row ${rowNumber}: Invalid or missing coordinates (latitude/longitude values). The project location is not printed on the map.`);
+            resultErrors.push(`Row ${rowNumber}: Invalid or missing coordinates (latitude/longitude). The location will not appear on the map.`);
         }
 
         errors.forEach(error => {
-            if (error.instancePath && (
-                error.instancePath.startsWith("/geometry/coordinates") ||
-                error.instancePath === "/geometry/type" ||
-                (error.instancePath === "/geometry" &&
-                    (error.message?.includes("required property") ||
-                        error.message?.includes("must match exactly one schema") ||
-                        error.message?.includes("must be null")))
-            )) {
+            if (Utils.isCoordinateError(error)) {
                 return;
             }
-
-            const path = error.instancePath ? ` at "${error.instancePath}"` : "";
-            const message = error.message ? `: ${error.message}` : "";
-            resultErrors.push(`Row ${rowNumber}${path}${message}`);
+            resultErrors.push(Utils.formatSingleError(error, rowNumber));
         });
 
         return resultErrors;

@@ -66,10 +66,9 @@ export default function FileValidator(): React.ReactElement {
 							setGeoJsonDataWrap({ type: "FeatureCollection", features: [geoJsonData] }); // Wrap in FeatureCollection
 						} else {
 							// Format validation errors
-							const formattedErrors = (validateProject.errors || [])
-								.map(Utils.formatError)
-								.join("\n");
-							setValidationResult(`GeoJSON Feature Validation Errors:\n${formattedErrors}`);
+							const formattedErrors = Utils.formatAjvErrorsWithRow(validateProject.errors || [], 1);
+							const header = Utils.getValidationErrorHeader(lang);
+							setValidationResult(`${header}\n\n${formattedErrors.join("\n")}`);
 						}
 						break;
 					}
@@ -137,7 +136,8 @@ export default function FileValidator(): React.ReactElement {
 					if (allErrors.length == 0) { // Wenn keine Fehler gefunden wurden
 						setValidationResult("Excel/CSV-Validation successfull!");
 					} else {
-						setValidationResult(`Validation Errors:\n${allErrors.join("\n")}`);
+						const header = Utils.getValidationErrorHeader(lang);
+						setValidationResult(`${header}\n\n${allErrors.join("\n")}`);
 						setEnableEMailButton(false)
 					}
 					const features = jsonData.map(Utils.toGeoFeature)
@@ -224,7 +224,8 @@ export default function FileValidator(): React.ReactElement {
 				setEnableEMailButton(true)
 				setInProNumbers(new Set(localInproNumbers))
 			} else {
-				setValidationResult(`Validation Errors:\n${allErrors.join("\n")}`);
+				const header = Utils.getValidationErrorHeader(lang);
+				setValidationResult(`${header}\n\n${allErrors.join("\n")}`);
 				setEnableEMailButton(false)
 			}
 
@@ -309,18 +310,30 @@ export default function FileValidator(): React.ReactElement {
 			<div
 				style={{
 					...(validationResult.toLowerCase().includes("data is valid!") ? { backgroundColor: "rgba(0, 128, 0, 0.2)" } : {}),
-					...(validationResult.toLowerCase().includes("error") ? { backgroundColor: "rgba(128, 0, 0, 0.2)" } : {}),
+					...(validationResult.toLowerCase().includes("error") || validationResult.toLowerCase().includes("missing value") ? { backgroundColor: "rgba(128, 0, 0, 0.2)" } : {}),
 					maxHeight: '360px',
 					overflowY: 'auto',
 					overflowX: 'hidden',
 					marginTop: '0.5rem',
-					padding: '0.2rem',
+					padding: '0.5rem',
 					border: '1px solid #ccc',
 					borderRadius: '4px',
 				}}
 			>
 				<h3>Validation Result</h3>
-				<pre>{validationResult}</pre>
+				<pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'inherit', fontSize: '0.9rem' }}>
+					{validationResult.split('\n').map((line, i) =>
+						line.startsWith('For field descriptions') ? (
+							<span key={i}>{line.replace(/(https?:\/\/[^\s]+)/, '').trim()}{' '}
+								<a href={line.match(/(https?:\/\/[^\s]+)/)?.[1] || '#'} target="_blank" rel="noopener noreferrer">
+									{line.match(/(https?:\/\/[^\s]+)/)?.[1]}
+								</a>{'\n'}
+							</span>
+						) : (
+							<span key={i}>{line}{'\n'}</span>
+						)
+					)}
+				</pre>
 			</div>
 		)}
 
