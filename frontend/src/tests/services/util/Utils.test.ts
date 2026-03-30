@@ -151,7 +151,7 @@ describe("Utils", () => {
             expect(Utils.extractFieldName(error)).toBe("donor_project_no");
         });
         it("extracts missingProperty for required errors", () => {
-            const error = { instancePath: "", keyword: "required", params: { missingProperty: "scheme_version" } } as ErrorObject;
+            const error = { instancePath: "", keyword: "required", schemaPath: "", params: { missingProperty: "scheme_version" } } as ErrorObject;
             expect(Utils.extractFieldName(error)).toBe("scheme_version");
         });
         it("returns empty string for root path without required", () => {
@@ -163,17 +163,17 @@ describe("Utils", () => {
     // -----------------------------------------------------------------------
     describe("formatSingleError", () => {
         it("formats required error with missing property name", () => {
-            const error = { keyword: "required", instancePath: "", params: { missingProperty: "data_provider" }, message: "must have required property 'data_provider'" } as ErrorObject;
+            const error = { keyword: "required", instancePath: "", schemaPath: "", params: { missingProperty: "data_provider" }, message: "must have required property 'data_provider'" } as ErrorObject;
             const result = Utils.formatSingleError(error, 1);
             expect(result).toBe('Row 1: Missing value for "data_provider".');
         });
         it("formats type error", () => {
-            const error = { keyword: "type", instancePath: "/properties/donor_project_no", params: { type: "number" }, message: "must be number" } as ErrorObject;
+            const error = { keyword: "type", instancePath: "/properties/donor_project_no", schemaPath: "", params: { type: "number" }, message: "must be number" } as ErrorObject;
             const result = Utils.formatSingleError(error, 2);
             expect(result).toBe('Row 2: "donor_project_no" must be of type number.');
         });
         it("formats enum error with short allowed values list", () => {
-            const error = { keyword: "enum", instancePath: "/properties/geographic_exactness", params: { allowedValues: ["exact", "approximate (yet unknown)", "approximate (security)", "approximate (admin unit)"] }, message: "must be equal to one of the allowed values" } as ErrorObject;
+            const error = { keyword: "enum", instancePath: "/properties/geographic_exactness", schemaPath: "", params: { allowedValues: ["exact", "approximate (yet unknown)", "approximate (security)", "approximate (admin unit)"] }, message: "must be equal to one of the allowed values" } as ErrorObject;
             const result = Utils.formatSingleError(error, 3);
             expect(result).toContain('Row 3: "geographic_exactness" has an invalid value.');
             expect(result).toContain("exact");
@@ -181,12 +181,12 @@ describe("Utils", () => {
         });
         it("formats enum error with long list as doc reference", () => {
             const longValues = Array.from({ length: 20 }, (_, i) => `value_${i}`);
-            const error = { keyword: "enum", instancePath: "/properties/location_type_name", params: { allowedValues: longValues }, message: "must be equal to one of the allowed values" } as ErrorObject;
+            const error = { keyword: "enum", instancePath: "/properties/location_type_name", schemaPath: "", params: { allowedValues: longValues }, message: "must be equal to one of the allowed values" } as ErrorObject;
             const result = Utils.formatSingleError(error, 4);
             expect(result).toContain("check the documentation");
         });
         it("formats instanceof Date error", () => {
-            const error = { keyword: "instanceof", instancePath: "/properties/date_of_data_collection", params: { instanceof: "Date" }, message: 'must pass "instanceof" keyword validation' } as ErrorObject;
+            const error = { keyword: "instanceof", instancePath: "/properties/date_of_data_collection", schemaPath: "", params: { instanceof: "Date" }, message: 'must pass "instanceof" keyword validation' } as ErrorObject;
             const result = Utils.formatSingleError(error, 5);
             expect(result).toBe('Row 5: "date_of_data_collection" must be a valid date (e.g. 2022-01-01).');
         });
@@ -241,21 +241,21 @@ describe("Utils", () => {
         });
         it("formats required errors with human-readable message", () => {
             const errors = [
-                { keyword: "required", instancePath: "", params: { missingProperty: "data_provider" }, message: "must have required property 'data_provider'" },
+                { keyword: "required", instancePath: "", schemaPath: "", params: { missingProperty: "data_provider" }, message: "must have required property 'data_provider'" },
             ] as ErrorObject[];
             const result = Utils.formatAjvErrorsWithRow(errors, 3);
             expect(result).toEqual(['Row 3: Missing value for "data_provider".']);
         });
         it("formats type errors with expected type", () => {
             const errors = [
-                { keyword: "type", instancePath: "/donor_project_no", params: { type: "number" }, message: "must be number" },
+                { keyword: "type", instancePath: "/donor_project_no", schemaPath: "", params: { type: "number" }, message: "must be number" },
             ] as ErrorObject[];
             const result = Utils.formatAjvErrorsWithRow(errors, 7);
             expect(result[0]).toContain('"donor_project_no" must be of type number');
         });
         it("formats enum errors with allowed values", () => {
             const errors = [
-                { keyword: "enum", instancePath: "/geographic_exactness", params: { allowedValues: ["exact", "approximate (yet unknown)"] }, message: "must be equal to one of the allowed values" },
+                { keyword: "enum", instancePath: "/geographic_exactness", schemaPath: "", params: { allowedValues: ["exact", "approximate (yet unknown)"] }, message: "must be equal to one of the allowed values" },
             ] as ErrorObject[];
             const result = Utils.formatAjvErrorsWithRow(errors, 1);
             expect(result[0]).toContain("invalid value");
@@ -263,7 +263,7 @@ describe("Utils", () => {
         });
         it("formats instanceof Date errors", () => {
             const errors = [
-                { keyword: "instanceof", instancePath: "/date_of_data_collection", params: { instanceof: "Date" }, message: 'must pass "instanceof" keyword validation' },
+                { keyword: "instanceof", instancePath: "/date_of_data_collection", schemaPath: "", params: { instanceof: "Date" }, message: 'must pass "instanceof" keyword validation' },
             ] as ErrorObject[];
             const result = Utils.formatAjvErrorsWithRow(errors, 1);
             expect(result[0]).toContain("valid date");
@@ -280,7 +280,7 @@ describe("Utils", () => {
             expect(result[1]).toContain('Missing value for "name"');
         });
         it("uses correct row number in all messages", () => {
-            const errors = [{ keyword: "type", instancePath: "/x", params: { type: "string" }, message: "must be string" }] as ErrorObject[];
+            const errors = [{ keyword: "type", instancePath: "/x", schemaPath: "", params: { type: "string" }, message: "must be string" }] as ErrorObject[];
             expect(Utils.formatAjvErrorsWithRow(errors, 99)[0]).toMatch(/^Row 99/);
         });
     });
