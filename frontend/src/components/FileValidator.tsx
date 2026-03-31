@@ -312,7 +312,7 @@ export default function FileValidator(): React.ReactElement {
 			<div
 				style={{
 					...(validationResult.toLowerCase().includes("data is valid!") ? { backgroundColor: "rgba(0, 128, 0, 0.2)" } : {}),
-					...(validationResult.toLowerCase().includes("error") || validationResult.toLowerCase().includes("missing value") ? { backgroundColor: "rgba(128, 0, 0, 0.2)" } : {}),
+					...(validationResult.toLowerCase().includes("error") || validationResult.toLowerCase().includes("missing") ? { backgroundColor: "rgba(128, 0, 0, 0.2)" } : {}),
 					maxHeight: '360px',
 					overflowY: 'auto',
 					overflowX: 'hidden',
