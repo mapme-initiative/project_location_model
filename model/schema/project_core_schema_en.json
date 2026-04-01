@@ -3,10 +3,6 @@
   "$id": "project_core_schema.json",
   "description": "This schema defines the structure of the project location model. It is used to validate the project location data provided by the KfW counterpart.",
   "properties": {
-    "f_id": {
-      "description": "For new locations, this column will be empty. For updates,  KfW will provide you with the list of f_id numbers of this file to ensure that the updated field ids match with the former ones.",
-      "type": "number"
-    },
     "scheme_version": {
       "type": "string",
       "enum": [
