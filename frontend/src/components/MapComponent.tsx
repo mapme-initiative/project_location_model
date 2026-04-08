@@ -125,6 +125,10 @@ function filterValidFeatures(features: GeoJSONFeature[]): GeoJSONFeature[] {
 const MapComponent: React.FC<MapComponentProps> = ({ geoJsonData }) => {
   const [selectedFeature, setSelectedFeature] = useState<GeoJSONFeature | null>(null);
 
+  useEffect(()=>{
+    setSelectedFeature(null)
+  },[geoJsonData])
+
   const validGeoJsonData: GeoJSONCollection = geoJsonData && geoJsonData.features ? {
     type: "FeatureCollection",
     features: filterValidFeatures(geoJsonData?.features)
