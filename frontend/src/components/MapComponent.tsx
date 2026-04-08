@@ -1,5 +1,6 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import {GeoJSON, LayersControl, MapContainer, TileLayer, useMap, ZoomControl} from "react-leaflet";
 import L from "leaflet";
 import 'leaflet/dist/leaflet.css';
@@ -40,6 +41,62 @@ const FullscreenControl: React.FC = () => {
   }
 
   return null;
+};
+
+// Sidebar that is rendered inside the map container via portal when in fullscreen
+const FullscreenSidebar: React.FC<{
+  selectedFeature: GeoJSONFeature | null;
+  onClose: () => void;
+  formatValue: (v: any) => string;
+}> = ({ selectedFeature, onClose, formatValue }) => {
+  const map = useMap();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const portalContainer = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    // Create a dedicated container inside the map DOM for the portal
+    const container = document.createElement('div');
+    container.className = 'fullscreen-sidebar-portal';
+    map.getContainer().appendChild(container);
+    portalContainer.current = container;
+
+    const onEnter = () => setIsFullscreen(true);
+    const onExit = () => setIsFullscreen(false);
+    map.on('enterFullscreen', onEnter);
+    map.on('exitFullscreen', onExit);
+
+    return () => {
+      map.off('enterFullscreen', onEnter);
+      map.off('exitFullscreen', onExit);
+      container.remove();
+    };
+  }, [map]);
+
+  if (!isFullscreen || !selectedFeature || !portalContainer.current) return null;
+
+  return createPortal(
+    <div className="map-sidebar map-sidebar--open map-sidebar--fullscreen">
+      <div className="map-sidebar__header">
+        <h3>{(selectedFeature.properties as any)?.['location_name'] || 'Details'}</h3>
+        <button
+          className="map-sidebar__close"
+          onClick={onClose}
+          aria-label="Schließen"
+        >
+          ×
+        </button>
+      </div>
+      <div className="map-sidebar__content">
+        {Object.entries(selectedFeature.properties).map(([key, value]) => (
+          <div key={key} className="map-sidebar__row">
+            <span className="map-sidebar__label">{key.replace(/_/g, ' ')}</span>
+            <span className="map-sidebar__value">{formatValue(value)}</span>
+          </div>
+        ))}
+      </div>
+    </div>,
+    portalContainer.current
+  );
 };
 
 /**
@@ -148,6 +205,12 @@ const MapComponent: React.FC<MapComponentProps> = ({ geoJsonData }) => {
         {validGeoJsonData && (
           <GeoJSON data={validGeoJsonData} onEachFeature={onEachFeature} />
         )}
+
+        <FullscreenSidebar
+          selectedFeature={selectedFeature}
+          onClose={() => setSelectedFeature(null)}
+          formatValue={formatValue}
+        />
       </MapContainer>
 
       {/* Sidebar – erscheint rechts neben der Karte beim Klick auf ein Feature */}

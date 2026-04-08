@@ -86,3 +86,25 @@
     word-break: break-word;
   }
 }
+
+// ============================================================
+// Fullscreen sidebar – overlay inside the map container
+// ============================================================
+.fullscreen-sidebar-portal {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  z-index: 10000; // above all Leaflet layers & controls
+  pointer-events: none;
+
+  .map-sidebar {
+    pointer-events: auto;
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.25);
+  }
+}
+
