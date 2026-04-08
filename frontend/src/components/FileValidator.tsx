@@ -61,7 +61,7 @@ export default function FileValidator(): React.ReactElement {
 				const validateProject = validateProjectFunction
 
 				// Parse the uploaded GeoJSON
-				const geoJsonData = JSON.parse(text,Utils.toDateObj);
+				const geoJsonData = JSON.parse(text);
 
 				// Check if the input is a Feature or a FeatureCollection
 				switch (geoJsonData.type) {
