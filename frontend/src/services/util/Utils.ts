@@ -54,8 +54,8 @@ export default class Utils {
             },
             properties: {
                 ...rest,
-                latitude,
-                longitude
+                latitude: safeParseFloat(latitude),
+                longitude: safeParseFloat(longitude)
             }
         };
     }
