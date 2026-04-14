@@ -341,11 +341,15 @@
     },
     "latitude": {
       "description": "Optional. Provide this value only when uploading coordinates via Excel",
-      "type": "number"
+      "type": "number",
+      "minimum": -90,
+      "maximum": 90
     },
     "longitude": {
       "description": "Optional. Provide this value only when uploading coordinates via Excel",
-      "type": "number"
+      "type": "number",
+      "minimum": -180,
+      "maximum": 180
     }
   },
   "required": [
