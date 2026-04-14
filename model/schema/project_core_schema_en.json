@@ -340,11 +340,11 @@
       "type": "string"
     },
     "latitude": {
-      "description": "it's optional you need it only if you upload it with excel",
+      "description": "Optional. Provide this value only when uploading coordinates via Excel",
       "type": "number"
     },
     "longitude": {
-      "description": "it's optional you need it only if you upload it with excel",
+      "description": "Optional. Provide this value only when uploading coordinates via Excel",
       "type": "number"
     }
   },
