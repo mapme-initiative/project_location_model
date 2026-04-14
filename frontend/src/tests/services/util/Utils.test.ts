@@ -78,7 +78,7 @@ describe("Utils", () => {
             expect(feature.geometry.coordinates).toEqual([20.3, 10.5]);
         });
         it("puts all non-lat/lon fields in properties", () => {
-            const row = { latitude: "1", longitude: "2", name: "x", value: "y" };
+            const row = { latitude: 1, longitude: 2, name: "x", value: "y" };
             const feature = Utils.toGeoFeature(row);
             expect(feature.properties).toEqual({  latitude: 1, longitude: 2, name: "x", value: "y" });
         });
