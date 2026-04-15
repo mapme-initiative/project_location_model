@@ -331,11 +331,19 @@ export default function FileValidator(): React.ReactElement {
 			>
 				<h3>Validation Result</h3>
 				<pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'inherit', fontSize: '0.9rem' }}>
-					{getValidationErrorHeader(lang)}
-					<br/>
-					{validationResult.split('\n').map((line, i) =>
-						<span key={i}>{line}{'\n'}</span>
-					)}
+					{
+						validationResult.includes("data is valid!") ? validationResult : null
+					}
+					{
+						!validationResult.includes("data is valid!") &&
+							getValidationErrorHeader(lang)
+					}
+					{
+						!validationResult.includes("data is valid!") &&
+							validationResult.split('\n').map((line, i) =>
+								<span key={i}>{line}{'\n'}</span>)
+
+					}
 				</pre>
 			</div>
 		)}

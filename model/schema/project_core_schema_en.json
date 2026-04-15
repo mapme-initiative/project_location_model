@@ -7,9 +7,14 @@
       "enum": ["3.0"],
       "type": "string"
     },
+    "fid": {
+      "description": "Unique identifier for each project location. This can be a local MIS-/GIS-ID or a combination of project number and location name.",
+      "type": "number",
+      "default": -1
+    },
     "donor_project_no": {
       "description": "Every project location must be assigned to its respective BMZ project number.",
-      "type": "number"
+      "type": "integer"
     },
     "project_acronym": {
       "description": "Enter the acronym used for the name/title of the project (e.g. HREII) to be visible on your map. If the project has multiple phases, please add the number of the phase belonging to the before-stated KfW Project-No.",
@@ -333,6 +338,18 @@
         "approximate (admin unit)"
       ],
       "type": "string"
+    },
+    "latitude": {
+      "description": "Optional. Provide this value only when uploading coordinates via Excel",
+      "type": "number",
+      "minimum": -90,
+      "maximum": 90
+    },
+    "longitude": {
+      "description": "Optional. Provide this value only when uploading coordinates via Excel",
+      "type": "number",
+      "minimum": -180,
+      "maximum": 180
     }
   },
   "required": [

@@ -78,21 +78,15 @@ describe("Utils", () => {
             expect(feature.geometry.coordinates).toEqual([20.3, 10.5]);
         });
         it("puts all non-lat/lon fields in properties", () => {
-            const row = { latitude: "1", longitude: "2", name: "x", value: "y" };
+            const row = { latitude: 1, longitude: 2, name: "x", value: "y" };
             const feature = Utils.toGeoFeature(row);
-            expect(feature.properties).toEqual({ name: "x", value: "y" });
+            expect(feature.properties).toEqual({  latitude: 1, longitude: 2, name: "x", value: "y" });
         });
         it("returns NaN coordinates for non-numeric lat/lon", () => {
             const row = { latitude: "invalid", longitude: "also-invalid" };
             const feature = Utils.toGeoFeature(row);
             expect(feature.geometry.coordinates[0]).toBeNaN();
             expect(feature.geometry.coordinates[1]).toBeNaN();
-        });
-        it("properties does not contain latitude or longitude", () => {
-            const row = { latitude: "1", longitude: "2", extra: "x" };
-            const feature = Utils.toGeoFeature(row);
-            expect(feature.properties).not.toHaveProperty("latitude");
-            expect(feature.properties).not.toHaveProperty("longitude");
         });
     });
 

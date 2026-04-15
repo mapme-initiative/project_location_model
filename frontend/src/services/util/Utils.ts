@@ -53,7 +53,9 @@ export default class Utils {
                 coordinates: [safeParseFloat(longitude), safeParseFloat(latitude)]
             },
             properties: {
-                ...rest
+                ...rest,
+                latitude: safeParseFloat(latitude),
+                longitude: safeParseFloat(longitude)
             }
         };
     }

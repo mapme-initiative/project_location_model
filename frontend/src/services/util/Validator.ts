@@ -61,7 +61,7 @@ export default class Validator {
      * Create a configured AJV instance with formats support
      */
     private static createAjv(): Ajv {
-        const ajv = new Ajv({ allErrors: true });
+        const ajv = new Ajv({ allErrors: true, useDefaults: true });
         addFormats(ajv);
         return ajv;
     }
