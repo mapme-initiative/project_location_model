@@ -48,7 +48,7 @@ For the collection of point-locations, the use of **.GeoJSON** is optional but r
 
 We highlight two common cases for generating the required data: 
 
-1. **Desktop-production**: For manual data collection, we recommend using the [Excel templates](./annex1.md) to store all attributes and merging this information with spatial information (feature geometries) in a GIS software. Since the Excel templates are pre-configured, it is easier to provide data that is compliant with our data-model and pass the validation check as a way to ensure data quality. This [tutorial](./QGIS-create-GeoJSONs-v0.pdf) describes how to prepare geometries in QGIS and link them to the Excel template.
+1. **Desktop-production**: For manual data collection, we recommend using the [Excel templates](./annex1.md) to store all attributes and merging this information with spatial information (feature geometries) in a GIS software. Since the Excel templates are pre-configured, it is easier to provide data that is compliant with our data-model and pass the validation check as a way to ensure data quality. This [tutorial](https://github.com/mapme-initiative/project_location_model/blob/main/frontend/public/QGIS-create-GeoJSONs-v0.pdf) describes how to prepare geometries in QGIS and link them to the Excel template.
 
 2. **Database-extraction**: If location information is available in a geospatial database, it is possible to extract and transform the data into field-mappings that also match our requirements. In these cases, the data-model can be provided as a [JSON schema](./annex2.md). This supports batch conversions as a starting point; any missing information can then be manually added.
 
