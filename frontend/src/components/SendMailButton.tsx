@@ -10,7 +10,12 @@ type SendMailButtonProps = {
 export default function SendMailButton(props: Readonly<SendMailButtonProps>) {
     const generateMailTo = () => {
         const subject = encodeURIComponent("Validated Location data for Project " + props.inProNumbers.join(", "));
-        const body = encodeURIComponent(`Dear sir or madam, \n\rThis email contains validated location data for the project(s): \n${props.inProNumbers.join(", \n")}\nIt was validated by the "Location Validator" on https://mapme-initiative.github.io/project_location_model/validation.html. You can use the Location Validator Tool (https://mapme-initiative.github.io/project_location_model/validation.html) yourself to check the data validity and see all project locations printed on a map.\nYours sincerly, `);
+        const bodyText = `Dear sir or madam,
+This email contains validated location data for the project(s):
+${props.inProNumbers.join(", \n")}
+It was validated by the "Location Validator" on https://mapme-initiative.github.io/project_location_model/validation.html. You can use the Location Validator Tool (https://mapme-initiative.github.io/project_location_model/validation.html) yourself to check the data validity and see all project locations printed on a map.
+Yours sincerly, `;
+        const body = encodeURIComponent(bodyText.replace(/\r?\n/g, "\r\n"));
         const mailtoLink = `mailto:?subject=${subject}&body=${body}`;
         window.location.href = mailtoLink;
     }
