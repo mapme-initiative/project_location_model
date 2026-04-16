@@ -14,7 +14,7 @@ export default function SendMailButton(props: Readonly<SendMailButtonProps>) {
 This email contains validated location data for the project(s):
 ${props.inProNumbers.join(", \n")}
 It was validated by the "Location Validator" on https://mapme-initiative.github.io/project_location_model/validation.html. You can use the Location Validator Tool (https://mapme-initiative.github.io/project_location_model/validation.html) yourself to check the data validity and see all project locations printed on a map.
-Yours sincerly, `;
+Yours sincerely, `;
         const body = encodeURIComponent(bodyText.replace(/\r?\n/g, "\r\n"));
         const mailtoLink = `mailto:?subject=${subject}&body=${body}`;
         window.location.href = mailtoLink;
