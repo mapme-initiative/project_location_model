@@ -4,13 +4,19 @@
   "description": "This schema defines the structure of the project location model. It is used to validate the project location data provided by the KfW counterpart.",
   "properties": {
     "scheme_version": {
-      "enum": ["3.0"],
+      "enum": ["4.0"],
       "type": "string"
     },
     "fid": {
       "description": "Unique identifier for each project location. This can be a local MIS-/GIS-ID or a combination of project number and location name.",
       "type": "number",
       "default": -1
+    },
+    "date_of_data_collection": {
+      "description": "Date of data collection or latest update (if date of data collection is unknown). In case only the year is available please choose the 1st of january e.g. 2022-01-01.",
+      "type": "string",
+      "format": "date"
+
     },
     "donor_project_no": {
       "description": "Every project location must be assigned to its respective BMZ project number.",
@@ -31,12 +37,6 @@
         "no"
       ],
       "type": "string"
-    },
-    "date_of_data_collection": {
-      "description": "Date of data collection or latest update (if date of data collection is unknown). In case only the year is available please choose the 1st of january e.g. 2022-01-01.",
-      "type": "string",
-      "format": "date"
-
     },
     "related_community": {
       "description": "Enter a community, village, hamlet or neighbourhood name that relates to this location, this can serve for manually add smaller administrative unit names that are not in global databases.",
