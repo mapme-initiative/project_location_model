@@ -162,7 +162,6 @@ export default function FileValidator(): React.ReactElement {
 							features: transformedFeatures,
 						});
 						setValidationWarnings(getDonorProjectWarnings({
-							type: "FeatureCollection",
 							features: stampedFeatures,
 						}));
 						break;
