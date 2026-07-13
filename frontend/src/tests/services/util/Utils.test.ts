@@ -282,7 +282,7 @@ describe("Utils", () => {
     // -----------------------------------------------------------------------
     describe("excelToJson", () => {
         it("returns an array of objects for the English template", () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V03.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
             const result = Utils.excelToJson(data, "en");
             expect(Array.isArray(result)).toBe(true);
             expect(result.length).toBeGreaterThan(0);
@@ -291,13 +291,13 @@ describe("Utils", () => {
         // TODO: re-enable once an official FR V04 template is available.
         // The parser reads the V04 layout (header row 4); the FR V03 fixture uses the old layout.
         it.skip("returns an array of objects for the French template", () => {
-            const data = loadFile("Project_Location_Data_Template_FR_V03.xlsx");
+            const data = loadFile("Project_Location_Data_Template_FR_V04.xlsx");
             const result = Utils.excelToJson(data, "fr");
             expect(Array.isArray(result)).toBe(true);
             expect(result.length).toBeGreaterThan(0);
         });
         it("throws when sheet for language is missing", () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V03.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
             expect(() => Utils.excelToJson(data, "fr")).toThrow(/Sheet "fill-me Remplissez-moi" not found/);
         });
     });
@@ -305,7 +305,7 @@ describe("Utils", () => {
     // -----------------------------------------------------------------------
     describe("excelToGeoJson", () => {
         it("parses valid English template", () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V03.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
             const features = Utils.excelToGeoJson(data, "en");
             expect(Array.isArray(features)).toBe(true);
             expect(features.length).toBeGreaterThan(0);
@@ -314,14 +314,14 @@ describe("Utils", () => {
         // TODO: re-enable once an official FR V04 template is available.
         // The parser reads the V04 layout (header row 4); the FR V03 fixture uses the old layout.
         it.skip("parses valid French template", () => {
-            const data = loadFile("Project_Location_Data_Template_FR_V03.xlsx");
+            const data = loadFile("Project_Location_Data_Template_FR_V04.xlsx");
             const features = Utils.excelToGeoJson(data, "fr");
             expect(Array.isArray(features)).toBe(true);
             expect(features.length).toBeGreaterThan(0);
             expect(features[0]).toHaveProperty("type", "Feature");
         });
         it("each feature has correct GeoJSON structure", () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V03.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
             const features = Utils.excelToGeoJson(data, "en");
             const f = features[0] as any;
             expect(f).toHaveProperty("geometry");
@@ -335,7 +335,7 @@ describe("Utils", () => {
             expect(() => Utils.excelToGeoJson(data, "en")).toThrow(/Sheet "fill-me" not found/);
         });
         it("throws error if expected sheet for lang is not present", () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V03.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
             expect(() => Utils.excelToGeoJson(data, "fr")).toThrow(/Sheet "fill-me Remplissez-moi" not found/);
         });
     });
@@ -343,7 +343,7 @@ describe("Utils", () => {
     // -----------------------------------------------------------------------
     describe("excelJSToJSON", () => {
         it("returns an array for the English template", async () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V03.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
             const result = await Utils.excelJSToJSON(data, "en");
             expect(Array.isArray(result)).toBe(true);
             expect(result.length).toBeGreaterThan(0);
@@ -351,13 +351,13 @@ describe("Utils", () => {
         // TODO: re-enable once an official FR V04 template is available.
         // The parser reads the V04 layout (header row 4); the FR V03 fixture uses the old layout.
         it.skip("returns an array for the French template", async () => {
-            const data = loadFile("Project_Location_Data_Template_FR_V03.xlsx");
+            const data = loadFile("Project_Location_Data_Template_FR_V04.xlsx");
             const result = await Utils.excelJSToJSON(data, "fr");
             expect(Array.isArray(result)).toBe(true);
             expect(result.length).toBeGreaterThan(0);
         });
         it("returns date strings in YYYY-MM-DD format for date fields", async () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V03.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
             const result = await Utils.excelJSToJSON(data, "en") as any[];
             const dateFields = ["activity_start_date", "activity_end_date", "date_of_data_collection"];
             const firstRow = result[0];
@@ -368,7 +368,7 @@ describe("Utils", () => {
             }
         });
         it("rejects when the expected sheet is missing", async () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V03.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
             await expect(Utils.excelJSToJSON(data, "fr"))
                 .rejects.toThrow(/Sheet "fill-me Remplissez-moi" not found/);
         });
