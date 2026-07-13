@@ -80,13 +80,57 @@ describe("Utils", () => {
         it("puts all non-lat/lon fields in properties", () => {
             const row = { latitude: 1, longitude: 2, name: "x", value: "y" };
             const feature = Utils.toGeoFeature(row);
-            expect(feature.properties).toEqual({  latitude: 1, longitude: 2, name: "x", value: "y" });
+            expect(feature.properties).toEqual({ name: "x", value: "y", latitude: 1, longitude: 2 });
         });
         it("returns NaN coordinates for non-numeric lat/lon", () => {
             const row = { latitude: "invalid", longitude: "also-invalid" };
             const feature = Utils.toGeoFeature(row);
             expect(feature.geometry.coordinates[0]).toBeNaN();
             expect(feature.geometry.coordinates[1]).toBeNaN();
+        });
+    });
+
+    // -----------------------------------------------------------------------
+    describe("buildOrderedProperties", () => {
+        it("places prefix fields first, suffix fields last, and preserves rest order", () => {
+            const raw = {
+                donor_project_no: 29937,
+                scheme_version: "4.0",
+                location_name: "Site A",
+                fid: -1,
+                geographic_exactness: "exact",
+                date_of_data_collection: "2026-07-14",
+                longitude: 74.59,
+                latitude: 36.29,
+            };
+            const ordered = Utils.buildOrderedProperties(raw);
+            expect(Object.keys(ordered)).toEqual([
+                "fid",
+                "scheme_version",
+                "date_of_data_collection",
+                "donor_project_no",
+                "location_name",
+                "geographic_exactness",
+                "latitude",
+                "longitude",
+            ]);
+        });
+        it("omits prefix keys that are not present", () => {
+            const raw = { scheme_version: "4.0", donor_project_no: 1 };
+            const ordered = Utils.buildOrderedProperties(raw);
+            expect(Object.keys(ordered)).toEqual(["scheme_version", "donor_project_no"]);
+        });
+        it("orderFeature applies ordering to feature properties", () => {
+            const feature = Utils.orderFeature({
+                type: "Feature",
+                properties: { longitude: 1, scheme_version: "4.0", fid: -1, latitude: 2 },
+            });
+            expect(Object.keys(feature.properties!)).toEqual([
+                "fid",
+                "scheme_version",
+                "latitude",
+                "longitude",
+            ]);
         });
     });
 
@@ -289,7 +333,7 @@ describe("Utils", () => {
             expect(typeof result[0]).toBe("object");
         });
         // TODO: re-enable once an official FR V04 template is available.
-        // The parser reads the V04 layout (header row 4); the FR V03 fixture uses the old layout.
+        // The parser reads the V04 layout (header row 3); the FR V03 fixture uses the old layout.
         it.skip("returns an array of objects for the French template", () => {
             const data = loadFile("Project_Location_Data_Template_FR_V04.xlsx");
             const result = Utils.excelToJson(data, "fr");
@@ -312,7 +356,7 @@ describe("Utils", () => {
             expect(features[0]).toHaveProperty("type", "Feature");
         });
         // TODO: re-enable once an official FR V04 template is available.
-        // The parser reads the V04 layout (header row 4); the FR V03 fixture uses the old layout.
+        // The parser reads the V04 layout (header row 3); the FR V03 fixture uses the old layout.
         it.skip("parses valid French template", () => {
             const data = loadFile("Project_Location_Data_Template_FR_V04.xlsx");
             const features = Utils.excelToGeoJson(data, "fr");
@@ -349,7 +393,7 @@ describe("Utils", () => {
             expect(result.length).toBeGreaterThan(0);
         });
         // TODO: re-enable once an official FR V04 template is available.
-        // The parser reads the V04 layout (header row 4); the FR V03 fixture uses the old layout.
+        // The parser reads the V04 layout (header row 3); the FR V03 fixture uses the old layout.
         it.skip("returns an array for the French template", async () => {
             const data = loadFile("Project_Location_Data_Template_FR_V04.xlsx");
             const result = await Utils.excelJSToJSON(data, "fr");

@@ -103,7 +103,17 @@ export default function FileValidator(): React.ReactElement {
 	function handleCSVFiles(data: string | ArrayBuffer | null | undefined) {
 		try {
 
-			const transformedData = applyValidationTimestamp(transformCsvToLocation(data));
+			const transformedData = applyValidationTimestamp(transformCsvToLocation(data)).map((feature: any) => {
+				const [longitude, latitude] = feature.geometry?.coordinates ?? [NaN, NaN];
+				return Utils.orderFeature({
+					...feature,
+					properties: {
+						...feature.properties,
+						latitude,
+						longitude,
+					},
+				});
+			});
 			const wrap = { type: "FeatureCollection", features: transformedData };
 			setGeoJsonDataWrap(wrap);
 			setValidationWarnings(getDonorProjectWarnings(wrap));
@@ -127,8 +137,9 @@ export default function FileValidator(): React.ReactElement {
 				switch (geoJsonData.type) {
 					case "Feature": {
 						const stampedFeature = applyValidationTimestamp([geoJsonData])[0];
-						const wrap = { type: "FeatureCollection", features: [stampedFeature] };
 						const isValid = validateProject ? validateProject(stampedFeature) : false;
+						const orderedFeature = Utils.orderFeature(stampedFeature);
+						const wrap = { type: "FeatureCollection", features: [orderedFeature] };
 						if (isValid) {
 							setValidationResult("GeoJSON Feature Data is valid!");
 							setGeoJsonDataWrap(wrap);
@@ -145,7 +156,8 @@ export default function FileValidator(): React.ReactElement {
 						const stampedFeatures = applyValidationTimestamp(geoJsonData.features);
 						const transformedFeatures = stampedFeatures
 							.map((feature: any) => Utils.toValidatedFeature(feature, validateProject))
-							.filter(Utils.notNull); // Remove invalid features
+							.filter(Utils.notNull)
+							.map((feature: any) => Utils.orderFeature(feature));
 						if (transformedFeatures.length === stampedFeatures.length) {
 							setValidationResult("GeoJSON FeatureCollection Data is valid!");
 							setIsDataValid(true)
@@ -290,6 +302,12 @@ export default function FileValidator(): React.ReactElement {
 					//TODO: Format the errors for this row
 				})
 				.filter(Utils.notUndefined)
+
+			const orderedFeatures = data.map((feature) => Utils.orderFeature(feature));
+			setGeoJsonDataWrap((prev: any) =>
+				prev?.features ? { ...prev, features: orderedFeatures } : prev
+			);
+
 			console.log("validateParsedData().allErrors", allErrors)
 			if (allErrors.length == 0) { // Wenn keine Fehler gefunden wurden & alle datenreihen eine inproNumber haben, dann aktiviere den Mail-Button
 				setValidationResult("Excel/CSV data is valid!");
@@ -315,8 +333,9 @@ export default function FileValidator(): React.ReactElement {
 
 	const downloadProcessed = () => {
 		setEnableEMailButton(true)
-		const blob = new Blob([JSON.stringify(geoJsonDataWrap)], { type: 'application/geo+json' });
-		saveAs(blob, buildValidatedGeoJsonFilename(geoJsonDataWrap));
+		const ordered = Utils.orderFeatureCollection(geoJsonDataWrap);
+		const blob = new Blob([JSON.stringify(ordered)], { type: 'application/geo+json' });
+		saveAs(blob, buildValidatedGeoJsonFilename(ordered));
 	};
 	return <div className='file_validator'>
 
