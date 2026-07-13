@@ -32,7 +32,7 @@ export default class Utils {
     }
     static getDataBySheetNameByXSLX(workbook: WorkBook, sheetName: string) {
         const data = xlsx.utils
-            .sheet_to_json(workbook.Sheets[sheetName], {range: 2, raw: false, UTC: true, dateNF:"yyyy-mm-dd"})
+            .sheet_to_json(workbook.Sheets[sheetName], {range: 3, raw: false, UTC: true, dateNF:"yyyy-mm-dd"})
             .filter(this.isExcelObjectWithProperties);
         return data;
     }
@@ -138,8 +138,8 @@ export default class Utils {
         // Einmaliger Bulk-Zugriff: komplettes Sheet als 2D-Array (1-basiert, sparse)
         const allValues = worksheet.getSheetValues() as any[][];
 
-        // Header aus Zeile 3 lesen
-        const headerRow = allValues[3];
+        // Header aus Zeile 4 lesen
+        const headerRow = allValues[4];
         if (!headerRow || headerRow.length === 0) return [];
 
         // Header-Map aufbauen: colIndex → headerName
@@ -153,7 +153,7 @@ export default class Utils {
         const jsonData: any[] = [];
         const rowCount = worksheet.actualRowCount;
 
-        for (let rowIndex = 4; rowIndex <= rowCount; rowIndex++) {
+        for (let rowIndex = 5; rowIndex <= rowCount; rowIndex++) {
             const row = allValues[rowIndex];
             if (!row) continue; // leere Zeile (sparse array)
 

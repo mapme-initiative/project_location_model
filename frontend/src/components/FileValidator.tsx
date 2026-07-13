@@ -26,6 +26,63 @@ import {getAppConfig} from "../services/Config.ts";
 import {Processing} from "./elements/Processing.tsx";
 
 
+/** Formats a local date as yyyy-mm-dd (compatible with schema format: "date"). */
+export function formatValidationDate(date: Date = new Date()): string {
+	const y = date.getFullYear();
+	const m = String(date.getMonth() + 1).padStart(2, '0');
+	const d = String(date.getDate()).padStart(2, '0');
+	return `${y}-${m}-${d}`;
+}
+
+/**
+ * Overwrites date_of_data_collection with the validation date.
+ * Supports flat rows (Excel) and GeoJSON Features.
+ */
+export function applyValidationTimestamp<T extends Record<string, unknown>>(rows: T[]): T[] {
+	const date = formatValidationDate();
+	return rows.map((row) => {
+		if (row && typeof row === 'object' && 'properties' in row && row.properties) {
+			const props = row.properties as Record<string, unknown>;
+			return { ...row, properties: { ...props, date_of_data_collection: date } };
+		}
+		return { ...row, date_of_data_collection: date };
+	});
+}
+
+export function buildValidatedGeoJsonFilename(geoJsonDataWrap: { features?: Array<{ properties?: Record<string, unknown> }> } | null): string {
+	const features = geoJsonDataWrap?.features ?? [];
+	const validationDate =
+		(features[0]?.properties?.date_of_data_collection as string | undefined) ?? formatValidationDate();
+
+	const projectNumbers = new Set(
+		features
+			.map(f => f?.properties?.donor_project_no)
+			.filter(n => n != null && n !== '')
+			.map(String)
+	);
+
+	if (projectNumbers.size === 1) {
+		const projectNo = [...projectNumbers][0].replace(/[^\w.-]/g, '_');
+		return `plm_${projectNo}_${validationDate}.geojson`;
+	}
+	return `plm_validated_${validationDate}.geojson`;
+}
+
+export function getDonorProjectWarnings(geoJsonDataWrap: { features?: Array<{ properties?: Record<string, unknown> }> } | null): string[] {
+	const projectNumbers = new Set(
+		(geoJsonDataWrap?.features ?? [])
+			.map(f => f?.properties?.donor_project_no)
+			.filter(n => n != null && n !== '')
+			.map(String)
+	);
+	if (projectNumbers.size === 0) {
+		return ['Warning: No BMZ project number found in the file.'];
+	}
+	if (projectNumbers.size > 1) {
+		return ['Warning: There is more than one BMZ project number in your file. Please verify.'];
+	}
+	return [];
+}
 
 export function getValidationErrorHeader(lang: SupportedLangs): React.ReactElement {
 	const schemaDocUrl = `https://mapme-initiative.github.io/project_location_model/schemas/project_core_schema_${Utils.sanitizeLang(lang)}.html`;
@@ -34,6 +91,7 @@ export function getValidationErrorHeader(lang: SupportedLangs): React.ReactEleme
 export default function FileValidator(): React.ReactElement {
 	const [lang, setLang] = useState<SupportedLangs>('en');
 	const [validationResult, setValidationResult] = useState<string | null>(null);
+	const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
 	const [geoJsonDataWrap, setGeoJsonDataWrap] = useState<any>(null);
 	const [enableEMailButton, setEnableEMailButton] = useState<boolean>(false);
 	const [openNoSheetDialog, setOpenNoSheetDialog] = React.useState(false);
@@ -45,8 +103,10 @@ export default function FileValidator(): React.ReactElement {
 	function handleCSVFiles(data: string | ArrayBuffer | null | undefined) {
 		try {
 
-			const transformedData = transformCsvToLocation(data);
-			setGeoJsonDataWrap({ type: "FeatureCollection", features: transformedData })
+			const transformedData = applyValidationTimestamp(transformCsvToLocation(data));
+			const wrap = { type: "FeatureCollection", features: transformedData };
+			setGeoJsonDataWrap(wrap);
+			setValidationWarnings(getDonorProjectWarnings(wrap));
 			validateParsedData(transformedData);
 		} catch (e) {
 			setValidationResult(`CSV-Files: ${e.message}`)
@@ -66,22 +126,27 @@ export default function FileValidator(): React.ReactElement {
 				// Check if the input is a Feature or a FeatureCollection
 				switch (geoJsonData.type) {
 					case "Feature": {
-						const isValid = validateProject ? validateProject(geoJsonData) : false;
+						const stampedFeature = applyValidationTimestamp([geoJsonData])[0];
+						const wrap = { type: "FeatureCollection", features: [stampedFeature] };
+						const isValid = validateProject ? validateProject(stampedFeature) : false;
 						if (isValid) {
 							setValidationResult("GeoJSON Feature Data is valid!");
-							setGeoJsonDataWrap({ type: "FeatureCollection", features: [geoJsonData] }); // Wrap in FeatureCollection
+							setGeoJsonDataWrap(wrap);
+							setValidationWarnings(getDonorProjectWarnings(wrap));
 						} else {
 							// Format validation errors
 							const formattedErrors = Utils.formatAjvErrorsWithRow(validateProject.errors || [], 1);
 							setValidationResult(formattedErrors.join("\n"));
+							setValidationWarnings(getDonorProjectWarnings(wrap));
 						}
 						break;
 					}
 					case "FeatureCollection": {
-						const transformedFeatures = geoJsonData.features
+						const stampedFeatures = applyValidationTimestamp(geoJsonData.features);
+						const transformedFeatures = stampedFeatures
 							.map((feature: any) => Utils.toValidatedFeature(feature, validateProject))
 							.filter(Utils.notNull); // Remove invalid features
-						if (transformedFeatures.length === geoJsonData.features.length) {
+						if (transformedFeatures.length === stampedFeatures.length) {
 							setValidationResult("GeoJSON FeatureCollection Data is valid!");
 							setIsDataValid(true)
 						} else {
@@ -96,6 +161,10 @@ export default function FileValidator(): React.ReactElement {
 							type: "FeatureCollection",
 							features: transformedFeatures,
 						});
+						setValidationWarnings(getDonorProjectWarnings({
+							type: "FeatureCollection",
+							features: stampedFeatures,
+						}));
 						break;
 					}
 					default: {
@@ -115,6 +184,7 @@ export default function FileValidator(): React.ReactElement {
 		// Clear the GeoJSON data and reset the validation result
 		setGeoJsonDataWrap(null);
 		setValidationResult(null);
+		setValidationWarnings([]);
 		setOpenNoSheetDialog(false)
 		setEnableEMailButton(false)
 		setIsDataValid(false)
@@ -125,7 +195,7 @@ export default function FileValidator(): React.ReactElement {
 	) {
 		try {
 			setIsProcessing(true)
-			const jsonData = await Utils.excelJSToJSON(data, lang)
+			const jsonData = applyValidationTimestamp(await Utils.excelJSToJSON(data, lang))
 			setIsProcessing(false)
 			console.log('Converted Excel data:', jsonData);
 
@@ -149,7 +219,9 @@ export default function FileValidator(): React.ReactElement {
 						setEnableEMailButton(false)
 					}
 					const features = jsonData.map(Utils.toGeoFeature)
-					setGeoJsonDataWrap({ type: "FeatureCollection", features });
+					const wrap = { type: "FeatureCollection", features };
+					setGeoJsonDataWrap(wrap);
+					setValidationWarnings(getDonorProjectWarnings(wrap));
 					return features;
 				})
 				.then(validateParsedData)
@@ -245,7 +317,7 @@ export default function FileValidator(): React.ReactElement {
 	const downloadProcessed = () => {
 		setEnableEMailButton(true)
 		const blob = new Blob([JSON.stringify(geoJsonDataWrap)], { type: 'application/geo+json' });
-		saveAs(blob, 'validated_data.geojson');
+		saveAs(blob, buildValidatedGeoJsonFilename(geoJsonDataWrap));
 	};
 	return <div className='file_validator'>
 
@@ -315,11 +387,11 @@ export default function FileValidator(): React.ReactElement {
 
 		{/* ____________________ Validation Result ____________________ */}
 
-		{validationResult && (
+		{(validationResult || validationWarnings.length > 0) && (
 			<div
 				style={{
-					...(validationResult.toLowerCase().includes("data is valid!") ? { backgroundColor: "rgba(0, 128, 0, 0.2)" } : {}),
-					...(validationResult.toLowerCase().includes("error") || validationResult.toLowerCase().includes("missing") ? { backgroundColor: "rgba(128, 0, 0, 0.2)" } : {}),
+					...(validationResult?.toLowerCase().includes("data is valid!") ? { backgroundColor: "rgba(0, 128, 0, 0.2)" } : {}),
+					...(validationResult && (validationResult.toLowerCase().includes("error") || validationResult.toLowerCase().includes("missing")) ? { backgroundColor: "rgba(128, 0, 0, 0.2)" } : {}),
 					maxHeight: '360px',
 					overflowY: 'auto',
 					overflowX: 'hidden',
@@ -330,16 +402,30 @@ export default function FileValidator(): React.ReactElement {
 				}}
 			>
 				<h3>Validation Result</h3>
+				{validationWarnings.map((line, i) => (
+					<div
+						key={i}
+						style={{
+							backgroundColor: 'rgba(255, 152, 0, 0.35)',
+							padding: '8px',
+							marginBottom: '8px',
+							borderRadius: '4px',
+							fontWeight: 500,
+						}}
+					>
+						{line}
+					</div>
+				))}
 				<pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'inherit', fontSize: '0.9rem' }}>
 					{
-						validationResult.includes("data is valid!") ? validationResult : null
+						validationResult?.includes("data is valid!") ? validationResult : null
 					}
 					{
-						!validationResult.includes("data is valid!") &&
+						validationResult && !validationResult.includes("data is valid!") &&
 							getValidationErrorHeader(lang)
 					}
 					{
-						!validationResult.includes("data is valid!") &&
+						validationResult && !validationResult.includes("data is valid!") &&
 							validationResult.split('\n').map((line, i) =>
 								<span key={i}>{line}{'\n'}</span>)
 
@@ -372,7 +458,7 @@ export default function FileValidator(): React.ReactElement {
 
 		<h4>Example Files:</h4>
 		<ul className="example-files">
-			<li><p><a href={"./Project_Location_Data_Template_EN_V03.xlsx"}>working example</a></p></li>
+			<li><p><a href={"./Project_Location_Data_Template_EN_V04_example.xlsx"}>working example</a></p></li>
 			{
 				/*
 			<li><p><a href={"./sheet_not_found.xlsx"}>no fill-me sheet</a></p></li>
