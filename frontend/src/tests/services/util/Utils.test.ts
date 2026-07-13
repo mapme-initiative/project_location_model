@@ -282,7 +282,7 @@ describe("Utils", () => {
     // -----------------------------------------------------------------------
     describe("excelToJson", () => {
         it("returns an array of objects for the English template", () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04_example.xlsx");
             const result = Utils.excelToJson(data, "en");
             expect(Array.isArray(result)).toBe(true);
             expect(result.length).toBeGreaterThan(0);
@@ -305,7 +305,7 @@ describe("Utils", () => {
     // -----------------------------------------------------------------------
     describe("excelToGeoJson", () => {
         it("parses valid English template", () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04_example.xlsx");
             const features = Utils.excelToGeoJson(data, "en");
             expect(Array.isArray(features)).toBe(true);
             expect(features.length).toBeGreaterThan(0);
@@ -321,7 +321,7 @@ describe("Utils", () => {
             expect(features[0]).toHaveProperty("type", "Feature");
         });
         it("each feature has correct GeoJSON structure", () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04_example.xlsx");
             const features = Utils.excelToGeoJson(data, "en");
             const f = features[0] as any;
             expect(f).toHaveProperty("geometry");
@@ -343,7 +343,7 @@ describe("Utils", () => {
     // -----------------------------------------------------------------------
     describe("excelJSToJSON", () => {
         it("returns an array for the English template", async () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04_example.xlsx");
             const result = await Utils.excelJSToJSON(data, "en");
             expect(Array.isArray(result)).toBe(true);
             expect(result.length).toBeGreaterThan(0);
@@ -357,7 +357,7 @@ describe("Utils", () => {
             expect(result.length).toBeGreaterThan(0);
         });
         it("returns date strings in YYYY-MM-DD format for date fields", async () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04_example.xlsx");
             const result = await Utils.excelJSToJSON(data, "en") as any[];
             const dateFields = ["activity_start_date", "activity_end_date", "date_of_data_collection"];
             const firstRow = result[0];
