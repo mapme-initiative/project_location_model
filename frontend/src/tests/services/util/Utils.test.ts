@@ -135,6 +135,51 @@ describe("Utils", () => {
     });
 
     // -----------------------------------------------------------------------
+    describe("stripExampleRows", () => {
+        it("removes flat rows with donor_project_no as number 123456789", () => {
+            const rows = [
+                { donor_project_no: 123456789, location_name: "Example" },
+                { donor_project_no: 29937, location_name: "Real" },
+            ];
+            const { items, removedCount } = Utils.stripExampleRows(rows);
+            expect(removedCount).toBe(1);
+            expect(items).toEqual([{ donor_project_no: 29937, location_name: "Real" }]);
+        });
+        it("removes flat rows with donor_project_no as string '123456789'", () => {
+            const rows = [
+                { donor_project_no: "123456789", location_name: "Example" },
+                { donor_project_no: 29937, location_name: "Real" },
+            ];
+            const { items, removedCount } = Utils.stripExampleRows(rows);
+            expect(removedCount).toBe(1);
+            expect(items).toHaveLength(1);
+        });
+        it("removes GeoJSON features with example project number in properties", () => {
+            const features = [
+                { type: "Feature", properties: { donor_project_no: 123456789 } },
+                { type: "Feature", properties: { donor_project_no: 29937 } },
+            ];
+            const { items, removedCount } = Utils.stripExampleRows(features);
+            expect(removedCount).toBe(1);
+            expect(items).toHaveLength(1);
+            expect(items[0].properties.donor_project_no).toBe(29937);
+        });
+        it("returns removedCount 0 when no example rows present", () => {
+            const { items, removedCount } = Utils.stripExampleRows([
+                { donor_project_no: 29937 },
+            ]);
+            expect(removedCount).toBe(0);
+            expect(items).toHaveLength(1);
+        });
+        it("getExampleRowsRemovedNote returns null when nothing removed", () => {
+            expect(Utils.getExampleRowsRemovedNote(0)).toBeNull();
+        });
+        it("getExampleRowsRemovedNote returns note when rows were removed", () => {
+            expect(Utils.getExampleRowsRemovedNote(1)).toContain("123456789");
+        });
+    });
+
+    // -----------------------------------------------------------------------
     describe("isExcelObjectWithProperties", () => {
         it("returns true for object with more than one key", () => {
             expect(Utils.isExcelObjectWithProperties({ a: 1, b: 2 })).toBe(true);
@@ -326,7 +371,7 @@ describe("Utils", () => {
     // -----------------------------------------------------------------------
     describe("excelToJson", () => {
         it("returns an array of objects for the English template", () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V04_example.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
             const result = Utils.excelToJson(data, "en");
             expect(Array.isArray(result)).toBe(true);
             expect(result.length).toBeGreaterThan(0);
@@ -349,7 +394,7 @@ describe("Utils", () => {
     // -----------------------------------------------------------------------
     describe("excelToGeoJson", () => {
         it("parses valid English template", () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V04_example.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
             const features = Utils.excelToGeoJson(data, "en");
             expect(Array.isArray(features)).toBe(true);
             expect(features.length).toBeGreaterThan(0);
@@ -365,7 +410,7 @@ describe("Utils", () => {
             expect(features[0]).toHaveProperty("type", "Feature");
         });
         it("each feature has correct GeoJSON structure", () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V04_example.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
             const features = Utils.excelToGeoJson(data, "en");
             const f = features[0] as any;
             expect(f).toHaveProperty("geometry");
@@ -387,7 +432,7 @@ describe("Utils", () => {
     // -----------------------------------------------------------------------
     describe("excelJSToJSON", () => {
         it("returns an array for the English template", async () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V04_example.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
             const result = await Utils.excelJSToJSON(data, "en");
             expect(Array.isArray(result)).toBe(true);
             expect(result.length).toBeGreaterThan(0);
@@ -401,7 +446,7 @@ describe("Utils", () => {
             expect(result.length).toBeGreaterThan(0);
         });
         it("returns date strings in YYYY-MM-DD format for date fields", async () => {
-            const data = loadFile("Project_Location_Data_Template_EN_V04_example.xlsx");
+            const data = loadFile("Project_Location_Data_Template_EN_V04.xlsx");
             const result = await Utils.excelJSToJSON(data, "en") as any[];
             const dateFields = ["activity_start_date", "activity_end_date", "date_of_data_collection"];
             const firstRow = result[0];

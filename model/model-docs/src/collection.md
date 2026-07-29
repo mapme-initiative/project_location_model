@@ -43,6 +43,8 @@ For the collection of point-loctions, we currently accept submissions in **.XLSX
  
 The **.XLSX** format is best suited, if your institution does not know how to handle geospatial data and has no former experience with Geographic Information System (GIS) software. In this case you can use the most recent version of our [Excel templates](./annex1.md) to collect all relevant information.
 
+**Attention:** the template includes an example row; delete it before submitting real data.
+
 ## Collection of point-, line-, and polygon-locations using GIS software
 For the collection of point-locations, the use of **.GeoJSON** is optional but recommended for its reliability and flexibility. For the collection of line- or polygon-locations, only **.GeoJSON** format is accepted.
 
