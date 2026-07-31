@@ -10,7 +10,9 @@ type SendMailButtonProps = {
 export default function SendMailButton(props: Readonly<SendMailButtonProps>) {
     const generateMailTo = () => {
         const subject = encodeURIComponent("Validated Location data for Project " + props.inProNumbers.join(", "));
-        const bodyText = `Dear sir or madam,
+        const bodyText = `PLEASE ATTACH GEOSPATIAL FILE BEFORE SENDING
+
+Dear sir or madam,
 This email contains validated location data for BMZ project number(s):
 ${props.inProNumbers.join(", \n")}
 It was validated by the "Location Validator" on https://mapme-initiative.github.io/project_location_model/validation.html. You can use the Location Validator Tool (https://mapme-initiative.github.io/project_location_model/validation.html) yourself to check the data validity and see all project locations printed on a map.

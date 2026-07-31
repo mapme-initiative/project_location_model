@@ -63,9 +63,9 @@ export function buildValidatedGeoJsonFilename(geoJsonDataWrap: { features?: Arra
 
 	if (projectNumbers.size === 1) {
 		const projectNo = [...projectNumbers][0].replace(/[^\w.-]/g, '_');
-		return `plm_${projectNo}_${validationDate}.geojson`;
+		return `locations_${projectNo}_${validationDate}.geojson`;
 	}
-	return `plm_validated_${validationDate}.geojson`;
+	return `locations_validated_${validationDate}.geojson`;
 }
 
 export function getDonorProjectWarnings(geoJsonDataWrap: { features?: Array<{ properties?: Record<string, unknown> }> } | null): string[] {
@@ -83,6 +83,22 @@ export function getDonorProjectWarnings(geoJsonDataWrap: { features?: Array<{ pr
 	}
 	return [];
 }
+
+export function buildValidationWarnings(
+	geoJsonDataWrap: { features?: Array<{ properties?: Record<string, unknown> }> } | null,
+	removedExampleCount: number
+): string[] {
+	const warnings: string[] = [];
+	const exampleNote = Utils.getExampleRowsRemovedNote(removedExampleCount);
+	if (exampleNote) {
+		warnings.push(exampleNote);
+	}
+	warnings.push(...getDonorProjectWarnings(geoJsonDataWrap));
+	return warnings;
+}
+
+export const NO_LOCATIONS_AFTER_EXAMPLE_STRIP =
+	'Error: No project locations remain after removing example row(s). Please replace the example data with real project locations.';
 
 export function getValidationErrorHeader(lang: SupportedLangs): React.ReactElement {
 	const schemaDocUrl = `https://mapme-initiative.github.io/project_location_model/schemas/project_core_schema_${Utils.sanitizeLang(lang)}.html`;
@@ -102,21 +118,16 @@ export default function FileValidator(): React.ReactElement {
 
 	function handleCSVFiles(data: string | ArrayBuffer | null | undefined) {
 		try {
-
-			const transformedData = applyValidationTimestamp(transformCsvToLocation(data)).map((feature: any) => {
-				const [longitude, latitude] = feature.geometry?.coordinates ?? [NaN, NaN];
-				return Utils.orderFeature({
-					...feature,
-					properties: {
-						...feature.properties,
-						latitude,
-						longitude,
-					},
-				});
-			});
+			const parsed = applyValidationTimestamp(transformCsvToLocation(data));
+			const { items: transformedData, removedCount } = Utils.stripExampleRows(parsed);
 			const wrap = { type: "FeatureCollection", features: transformedData };
 			setGeoJsonDataWrap(wrap);
-			setValidationWarnings(getDonorProjectWarnings(wrap));
+			setValidationWarnings(buildValidationWarnings(wrap, removedCount));
+			if (transformedData.length === 0) {
+				setValidationResult(NO_LOCATIONS_AFTER_EXAMPLE_STRIP);
+				setIsDataValid(false);
+				return;
+			}
 			validateParsedData(transformedData);
 		} catch (e) {
 			setValidationResult(`CSV-Files: ${e.message}`)
@@ -137,28 +148,48 @@ export default function FileValidator(): React.ReactElement {
 				switch (geoJsonData.type) {
 					case "Feature": {
 						const stampedFeature = applyValidationTimestamp([geoJsonData])[0];
-						const isValid = validateProject ? validateProject(stampedFeature) : false;
-						const orderedFeature = Utils.orderFeature(stampedFeature);
+						const { items: stripped, removedCount } = Utils.stripExampleRows([stampedFeature]);
+						if (stripped.length === 0) {
+							const wrap = { type: "FeatureCollection", features: [] };
+							setGeoJsonDataWrap(wrap);
+							setValidationWarnings(buildValidationWarnings(wrap, removedCount));
+							setValidationResult(NO_LOCATIONS_AFTER_EXAMPLE_STRIP);
+							setIsDataValid(false);
+							break;
+						}
+						const feature = stripped[0];
+						const isValid = validateProject ? validateProject(feature) : false;
+						const orderedFeature = Utils.orderFeature(feature);
 						const wrap = { type: "FeatureCollection", features: [orderedFeature] };
 						if (isValid) {
 							setValidationResult("GeoJSON Feature Data is valid!");
 							setGeoJsonDataWrap(wrap);
-							setValidationWarnings(getDonorProjectWarnings(wrap));
+							setValidationWarnings(buildValidationWarnings(wrap, removedCount));
+							setIsDataValid(true);
 						} else {
-							// Format validation errors
 							const formattedErrors = Utils.formatAjvErrorsWithRow(validateProject.errors || [], 1);
 							setValidationResult(formattedErrors.join("\n"));
-							setValidationWarnings(getDonorProjectWarnings(wrap));
+							setValidationWarnings(buildValidationWarnings(wrap, removedCount));
+							setIsDataValid(false);
 						}
 						break;
 					}
 					case "FeatureCollection": {
 						const stampedFeatures = applyValidationTimestamp(geoJsonData.features);
-						const transformedFeatures = stampedFeatures
+						const { items: withoutExamples, removedCount } = Utils.stripExampleRows(stampedFeatures);
+						if (withoutExamples.length === 0) {
+							const wrap = { type: "FeatureCollection", features: [] };
+							setGeoJsonDataWrap(wrap);
+							setValidationWarnings(buildValidationWarnings(wrap, removedCount));
+							setValidationResult(NO_LOCATIONS_AFTER_EXAMPLE_STRIP);
+							setIsDataValid(false);
+							break;
+						}
+						const transformedFeatures = withoutExamples
 							.map((feature: any) => Utils.toValidatedFeature(feature, validateProject))
-							.filter(Utils.notNull)
+							.filter(Utils.notNull) // Remove invalid features
 							.map((feature: any) => Utils.orderFeature(feature));
-						if (transformedFeatures.length === stampedFeatures.length) {
+						if (transformedFeatures.length === withoutExamples.length) {
 							setValidationResult("GeoJSON FeatureCollection Data is valid!");
 							setIsDataValid(true)
 						} else {
@@ -168,14 +199,13 @@ export default function FileValidator(): React.ReactElement {
 							setIsDataValid(false)
 						}
 
-						// Set the valid features in the state
 						setGeoJsonDataWrap({
 							type: "FeatureCollection",
 							features: transformedFeatures,
 						});
-						setValidationWarnings(getDonorProjectWarnings({
-							features: stampedFeatures,
-						}));
+						setValidationWarnings(buildValidationWarnings({
+							features: withoutExamples,
+						}, removedCount));
 						break;
 					}
 					default: {
@@ -206,9 +236,19 @@ export default function FileValidator(): React.ReactElement {
 	) {
 		try {
 			setIsProcessing(true)
-			const jsonData = applyValidationTimestamp(await Utils.excelJSToJSON(data, lang))
+			const parsedRows = applyValidationTimestamp(await Utils.excelJSToJSON(data, lang))
+			const { items: jsonData, removedCount } = Utils.stripExampleRows(parsedRows)
 			setIsProcessing(false)
 			console.log('Converted Excel data:', jsonData);
+
+			if (jsonData.length === 0) {
+				const wrap = { type: "FeatureCollection", features: [] };
+				setGeoJsonDataWrap(wrap);
+				setValidationWarnings(buildValidationWarnings(wrap, removedCount));
+				setValidationResult(NO_LOCATIONS_AFTER_EXAMPLE_STRIP);
+				setIsDataValid(false);
+				return;
+			}
 
 			// Validierung mit dem Core Validator
 			const validator = Validator.getCoreValidator(lang);
@@ -232,7 +272,7 @@ export default function FileValidator(): React.ReactElement {
 					const features = jsonData.map(Utils.toGeoFeature)
 					const wrap = { type: "FeatureCollection", features };
 					setGeoJsonDataWrap(wrap);
-					setValidationWarnings(getDonorProjectWarnings(wrap));
+					setValidationWarnings(buildValidationWarnings(wrap, removedCount));
 					return features;
 				})
 				.then(validateParsedData)
@@ -370,6 +410,7 @@ export default function FileValidator(): React.ReactElement {
 				<strong>Important:</strong>
 			</p>
 			<ul>
+				<li>Attention: the template includes an example row; delete it before submitting real data.</li>
 				<li>Make sure to attach the latest validated (and valid) version to the email.</li>
 				<li>In case of any problems or feature request create an issue at our <a href={"https://github.com/mapme-initiative/project_location_model/issues"}>Github-Issue-Tracker</a>.</li>
 			</ul>
@@ -476,7 +517,7 @@ export default function FileValidator(): React.ReactElement {
 
 		<h4>Example Files:</h4>
 		<ul className="example-files">
-			<li><p><a href={"./Project_Location_Data_Template_EN_V04_example.xlsx"}>working example</a></p></li>
+			<li><p><a href={"./Project_Location_Data_Template_EN_V04.xlsx"}>Excel template (EN V04)</a></p></li>
 			{
 				/*
 			<li><p><a href={"./sheet_not_found.xlsx"}>no fill-me sheet</a></p></li>

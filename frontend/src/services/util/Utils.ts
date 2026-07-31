@@ -29,6 +29,44 @@ export default class Utils {
     private static readonly PROPERTY_ORDER_PREFIX = ['fid', 'scheme_version', 'date_of_data_collection'] as const;
     private static readonly PROPERTY_ORDER_SUFFIX = ['latitude', 'longitude'] as const;
 
+    /** Placeholder BMZ project number used in the Excel template example row. */
+    static readonly EXAMPLE_PROJECT_NO = 123456789;
+
+    static isExampleProjectNo(value: unknown): boolean {
+        return value === Utils.EXAMPLE_PROJECT_NO || value === String(Utils.EXAMPLE_PROJECT_NO);
+    }
+
+    /**
+     * Removes template example rows (donor_project_no = 123456789).
+     * Supports flat Excel rows and GeoJSON Features (properties.donor_project_no).
+     */
+    static stripExampleRows<T extends Record<string, unknown>>(items: T[]): { items: T[]; removedCount: number } {
+        const remaining: T[] = [];
+        let removedCount = 0;
+
+        for (const item of items) {
+            const projectNo =
+                item && typeof item === 'object' && 'properties' in item && item.properties
+                    ? (item.properties as Record<string, unknown>).donor_project_no
+                    : item?.donor_project_no;
+
+            if (Utils.isExampleProjectNo(projectNo)) {
+                removedCount++;
+            } else {
+                remaining.push(item);
+            }
+        }
+
+        return { items: remaining, removedCount };
+    }
+
+    static getExampleRowsRemovedNote(removedCount: number): string | null {
+        if (removedCount <= 0) {
+            return null;
+        }
+        return 'Note: Example row(s) with project number 123456789 were removed from the validated output.';
+    }
+
     /**
      * Builds properties in a stable export order: fid, scheme_version,
      * date_of_data_collection, then remaining fields in source insertion order,
