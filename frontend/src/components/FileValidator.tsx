@@ -162,7 +162,7 @@ export default function FileValidator(): React.ReactElement {
 						const orderedFeature = Utils.orderFeature(feature);
 						const wrap = { type: "FeatureCollection", features: [orderedFeature] };
 						if (isValid) {
-							setValidationResult("GeoJSON Feature Data is valid!");
+							setValidationResult("GeoJSON Feature data is valid!");
 							setGeoJsonDataWrap(wrap);
 							setValidationWarnings(buildValidationWarnings(wrap, removedCount));
 							setIsDataValid(true);
@@ -190,7 +190,7 @@ export default function FileValidator(): React.ReactElement {
 							.filter(Utils.notNull) // Remove invalid features
 							.map((feature: any) => Utils.orderFeature(feature));
 						if (transformedFeatures.length === withoutExamples.length) {
-							setValidationResult("GeoJSON FeatureCollection Data is valid!");
+							setValidationResult("GeoJSON FeatureCollection data is valid!");
 							setIsDataValid(true)
 						} else {
 							setValidationResult(
@@ -410,8 +410,9 @@ export default function FileValidator(): React.ReactElement {
 				<strong>Important:</strong>
 			</p>
 			<ul>
-				<li>Attention: the template includes an example row; delete it before submitting real data.</li>
-				<li>Make sure to attach the latest validated (and valid) version to the email.</li>
+				<li>Please use the <a href="https://mapme-initiative.github.io/project_location_model/annex1.html">latest Excel template</a> for validation; earlier versions are not accepted by the validator.</li>
+				<li>Attention: The template contains an example row that will be automatically deleted during the validation process.</li>
+				<li>Make sure to attach the latest validated (and valid) version of the data to the email.</li>
 				<li>In case of any problems or feature request create an issue at our <a href={"https://github.com/mapme-initiative/project_location_model/issues"}>Github-Issue-Tracker</a>.</li>
 			</ul>
 			<FormControl variant="outlined" size="small">
@@ -477,14 +478,14 @@ export default function FileValidator(): React.ReactElement {
 				))}
 				<pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'inherit', fontSize: '0.9rem' }}>
 					{
-						validationResult?.includes("data is valid!") ? validationResult : null
+						validationResult?.toLowerCase().includes("data is valid!") ? validationResult : null
 					}
 					{
-						validationResult && !validationResult.includes("data is valid!") &&
+						validationResult && !validationResult?.toLowerCase().includes("data is valid!") &&
 							getValidationErrorHeader(lang)
 					}
 					{
-						validationResult && !validationResult.includes("data is valid!") &&
+						validationResult && !validationResult?.toLowerCase().includes("data is valid!") &&
 							validationResult.split('\n').map((line, i) =>
 								<span key={i}>{line}{'\n'}</span>)
 
