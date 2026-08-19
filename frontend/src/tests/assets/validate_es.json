@@ -1,0 +1,28 @@
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [
+      74.598611,
+      36.29333
+    ]
+  },
+  "properties": {
+    "scheme_version": "4.0",
+    "donor_project_no": 29937,
+    "project_acronym": "HRE II",
+    "data_provider": "Integration Consulting",
+    "publishing_restrictions": "no",
+    "date_of_data_collection": "2020-02-01",
+    "related_community": "Hassanabad Town",
+    "location_name": "Hassanabad I",
+    "location_activity_status": "Pipeline/identificación",
+    "activity_start_date": "2019-12-13",
+    "activity_end_date": "2024-12-13",
+    "activity_description": "Rehabilitación de la central hidroeléctrica",
+    "location_type_theme": "Energía",
+    "location_type_name": "central hidroeléctrica / presa",
+    "geographic_exactness": "exacta",
+    "uniqueId": "2993700005"
+  }
+}
