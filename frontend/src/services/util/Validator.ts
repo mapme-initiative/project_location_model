@@ -70,7 +70,7 @@ export default class Validator {
      * Create an AJV validator for the core schema (properties only)
      */
     static async getCoreValidator(lang: SupportedLangs): Promise<ValidateFunction<unknown>> {
-        if (lang !== "en" && lang !== "fr") {
+        if (lang !== "en" && lang !== "fr" && lang !== "es") { // add "pt" when ready
             throw new Error(`Unsupported language: ${lang}`);
         }
 
@@ -92,7 +92,7 @@ export default class Validator {
      * Automatically resolves the project_core_schema reference based on language
      */
     static async getProjectValidator(lang: SupportedLangs): Promise<ValidateFunction<unknown>> {
-        if (lang !== "en" && lang !== "fr") {
+        if (lang !== "en" && lang !== "fr" && lang !== "es") { // add "pt" when ready
             throw new Error(`Unsupported language: ${lang}`);
         }
 

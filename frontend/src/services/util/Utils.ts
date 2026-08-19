@@ -14,7 +14,7 @@ export enum OGMFileTypes {
     GEOJSON = "application/geo+json"
 }
 
-export type SupportedLangs = "en" | "fr";
+export type SupportedLangs = "en" | "fr" | "es"; // | "pt"
 
 // ============================================================================
 // Excel Conversion Functions
@@ -23,8 +23,10 @@ export default class Utils {
     static sheetNameMap = {
         en: "fill-me",
         fr: "fill-me Remplissez-moi",
+        es: "fill-me - relléname",
+        // pt: "fill-me - preencha-me",
     };
-    static sheetNameArray: Array<string> = ["fill-me", "fill-me Remplissez-moi"];
+    static sheetNameArray: Array<string> = ["fill-me", "fill-me Remplissez-moi", "fill-me - relléname"]; // add "fill-me - preencha-me" for pt
 
     private static readonly PROPERTY_ORDER_PREFIX = ['fid', 'scheme_version', 'date_of_data_collection'] as const;
     private static readonly PROPERTY_ORDER_SUFFIX = ['latitude', 'longitude'] as const;
@@ -444,7 +446,10 @@ export default class Utils {
     }
 
     public static sanitizeLang(lang: string): SupportedLangs {
-        return lang === 'fr' ? 'fr' : 'en';
+        if (lang === 'fr') return 'fr';
+        if (lang === 'es') return 'es';
+        // if (lang === 'pt') return 'pt';
+        return 'en';
     }
 
     /**
