@@ -32,6 +32,33 @@ describe("Utils", () => {
     });
 
     // -----------------------------------------------------------------------
+    describe("sanitizeLang", () => {
+        it("returns 'en' for English", () => {
+            expect(Utils.sanitizeLang("en")).toBe("en");
+        });
+        it("returns 'fr' for French", () => {
+            expect(Utils.sanitizeLang("fr")).toBe("fr");
+        });
+        it("returns 'es' for Spanish", () => {
+            expect(Utils.sanitizeLang("es")).toBe("es");
+        });
+        it("falls back to 'en' and warns for unsupported language", () => {
+            const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+            expect(Utils.sanitizeLang("de")).toBe("en");
+            expect(warnSpy).toHaveBeenCalledWith(
+                'Unsupported language "de", falling back to "en"'
+            );
+            warnSpy.mockRestore();
+        });
+        it("falls back to 'en' and warns for empty string", () => {
+            const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+            expect(Utils.sanitizeLang("")).toBe("en");
+            expect(warnSpy).toHaveBeenCalled();
+            warnSpy.mockRestore();
+        });
+    });
+
+    // -----------------------------------------------------------------------
     describe("toDateObj", () => {
         it("converts a full ISO datetime string to a Date object", () => {
             const result = Utils.toDateObj("k", "2024-03-13T10:00:00.000Z");

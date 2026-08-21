@@ -446,10 +446,19 @@ export default class Utils {
     }
 
     public static sanitizeLang(lang: string): SupportedLangs {
-        if (lang === 'fr') return 'fr';
-        if (lang === 'es') return 'es';
-        // if (lang === 'pt') return 'pt';
-        return 'en';
+        switch (lang) {
+            case 'fr':
+                return 'fr';
+            case 'es':
+                return 'es';
+            // case 'pt':
+            //     return 'pt';
+            case 'en':
+                return 'en';
+            default:
+                console.warn(`Unsupported language "${lang}", falling back to "en"`);
+                return 'en';
+        }
     }
 
     /**
