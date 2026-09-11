@@ -515,17 +515,17 @@ export default function FileValidator(): React.ReactElement {
 
 
 
-		{/* ____________________ Example ____________________
-
+		{/* ____________________ Example ____________________ */}
 		<h4>Example Files:</h4>
 		<ul className="example-files">
 			<li><p><a href={"./Project_Location_Data_Template_EN_V04.xlsx"}>Excel template (EN V04)</a></p></li>
 			<li><p><a href={"./Project_Location_Data_Template_ES_V04.xlsx"}>Excel template (ES V04)</a></p></li>
+			<li><p><a href={"./Project_Location_Data_Template_FR_V04.xlsx"}>Excel template (FR V04)</a></p></li>
+			<li><p><a href={"./Project_Location_Data_Template_PT_V04.xlsx"}>Excel template (PT V04)</a></p></li>
 			<li><p><a href={"./sheet_not_found.xlsx"}>no fill-me sheet</a></p></li>
 			<li><p><a href={"./invalid_data.xlsx"}>invalid_data</a></p></li>
-			<li><p><a href={"./missing_lat_lon.xlsx"}>missing_lat_lon</a></p></li>
+			{/* <li><p><a href={"./missing_lat_lon.xlsx"}>missing_lat_lon</a></p></li> */}
 		</ul>
-		*/}
 
 	</div>
 }
