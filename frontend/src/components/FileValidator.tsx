@@ -424,11 +424,9 @@ export default function FileValidator(): React.ReactElement {
 					label="Language"
 				>
 				<MenuItem value="en">English</MenuItem>
-				{//<MenuItem value="fr">Français</MenuItem>
-				}
-			<MenuItem value="es">Español</MenuItem>
-				{//<MenuItem value="pt">Português</MenuItem>
-				}
+				<MenuItem value="fr">Français</MenuItem>
+				<MenuItem value="es">Español</MenuItem>
+				<MenuItem value="pt">Português</MenuItem>
 				</Select>
 			</FormControl>
 			<FileUpload

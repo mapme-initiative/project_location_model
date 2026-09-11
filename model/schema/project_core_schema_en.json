@@ -33,7 +33,7 @@
     "publishing_restrictions": {
       "description": "Indicates if the exact location is collected in fragile areas (e.g. of severe civil conflict or war) and should therefore be omitted from publicly available reports.",
       "enum": [
-        "yes ",
+        "yes",
         "no"
       ],
       "type": "string"
@@ -158,7 +158,7 @@
         "democratization support",
         "depot / marshalling yard",
         "desalination plant",
-        "dezentralized sanitation (area)",
+        "decentralized sanitation (area)",
         "digital services usage area",
         "digital transformation of public services",
         "disarmament, demobilisation, reintegration of combatants (DDR)",
@@ -192,11 +192,10 @@
         "flood protection",
         "food access point",
         "food processing & value addition",
-        "fonds manager headquarter",
         "free trade zone",
         "fuel station",
+        "funds manager headquarters",
         "garden(s)",
-        "garantees",
         "geothermal power plant",
         "grazing / rangeland (management) area",
         "guarantees",
@@ -265,7 +264,7 @@
         "other physical",
         "other road-based vehicles",
         "other waste treatment plants",
-        "parcs & other green areas",
+        "parks & other green areas",
         "pedestrian lane(s) / bike lane(s)",
         "political / institutional reforms (PBF / PBL)",
         "pond",
@@ -275,7 +274,7 @@
         "protected area with sustainable use of natural resources (IUCN Cat VI)",
         "protected landscape or seascape (IUCN Cat V)",
         "public (admin) training institute",
-        "public  / social dialogue",
+        "public / social dialogue",
         "public financial management (PFM)",
         "quarrying",
         "rail operation control system / intelligent transport system (ITS)",

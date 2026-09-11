@@ -3,6 +3,7 @@ import Validator from "../../../services/util/Validator.ts";
 import validateDataEng from "../../assets/validate_en.json";
 import validateDataFr from "../../assets/validate_data_fr.json";
 import validateDataEs from "../../assets/validate_es.json";
+import validateDataPt from "../../assets/validate_pt.json";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -19,6 +20,8 @@ const mockFetch = (url: string) => {
         schemaPath = path.join(schemaDir, 'project_core_schema_fr.json');
     } else if (url.includes('project_core_schema_es.json')) {
         schemaPath = path.join(schemaDir, 'project_core_schema_es.json');
+    } else if (url.includes('project_core_schema_pt.json')) {
+        schemaPath = path.join(schemaDir, 'project_core_schema_pt.json');
     } else {
         return Promise.resolve({
             ok: false,
@@ -71,6 +74,18 @@ describe("getProjectValidator", () => {
         expect(typeof validator).toBe("function");
 
         const valid = validator(validateDataEs);
+        const invalid = validator({});
+        expect(valid).toBe(true);
+        expect(invalid).toBe(false);
+    });
+
+    it("returns a validator function for 'pt' and validates correctly", async () => {
+        global.fetch = jest.fn((url) => mockFetch(url as string)) as any;
+
+        const validator = await Validator.getProjectValidator("pt") as any;
+        expect(typeof validator).toBe("function");
+
+        const valid = validator(validateDataPt);
         const invalid = validator({});
         expect(valid).toBe(true);
         expect(invalid).toBe(false);
@@ -199,6 +214,12 @@ describe("getCoreValidator", () => {
         expect(typeof validator).toBe("function");
     });
 
+    it("returns a validator function for 'pt'", async () => {
+        global.fetch = jest.fn((url) => mockFetch(url as string)) as any;
+        const validator = await Validator.getCoreValidator("pt");
+        expect(typeof validator).toBe("function");
+    });
+
     it("validates correct EN core properties", async () => {
         global.fetch = jest.fn((url) => mockFetch(url as string)) as any;
         const validator = await Validator.getCoreValidator("en") as any;
@@ -222,6 +243,15 @@ describe("getCoreValidator", () => {
         const validator = await Validator.getCoreValidator("es") as any;
 
         const valid = validator(validateDataEs.properties);
+        expect(valid).toBe(true);
+        expect(validator.errors).toBeNull();
+    });
+
+    it("validates correct PT core properties", async () => {
+        global.fetch = jest.fn((url) => mockFetch(url as string)) as any;
+        const validator = await Validator.getCoreValidator("pt") as any;
+
+        const valid = validator(validateDataPt.properties);
         expect(valid).toBe(true);
         expect(validator.errors).toBeNull();
     });
