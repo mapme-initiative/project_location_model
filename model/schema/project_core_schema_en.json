@@ -23,7 +23,7 @@
       "type": "integer"
     },
     "project_acronym": {
-      "description": "Enter the acronym used for the name/title of the project (e.g. HREII) to be visible on your map. If the project has multiple phases, please add the number of the phase belonging to the before-stated KfW Project-No.",
+      "description": "Enter the acronym used for easy identification of the project (e.g. HRE II).",
       "type": "string"
     },
     "data_provider": {
@@ -33,7 +33,7 @@
     "publishing_restrictions": {
       "description": "Indicates if the exact location is collected in fragile areas (e.g. of severe civil conflict or war) and should therefore be omitted from publicly available reports.",
       "enum": [
-        "yes ",
+        "yes",
         "no"
       ],
       "type": "string"
@@ -43,7 +43,7 @@
       "type": "string"
     },
     "location_name": {
-      "description": "Unique name of the project site and its (main) activity incl local MIS-/GIS-ID, if availabe. This will be used as reference for line and polygon data.",
+      "description": "Unique name of the project site and its (main) activity incl. local MIS-/GIS-ID, if available.",
       "type": "string"
     },
     "location_activity_status": {
@@ -61,14 +61,14 @@
       "type": "string"
     },
     "activity_start_date": {
-      "description": "Aprox. planned or actual start date of implementation of activities on the ground. This can be e.g. the date when construction work is planned to begin. For no information enter 2100-01-01.",
+      "description": "Approximate planned or actual start date of implementation of activities on the ground. This can be e.g. the date when construction work is planned to begin. For no information enter 2100-01-01.",
       "type": "string",
       "format": "date"
 
 
     },
     "activity_end_date": {
-      "description": "Aprox. planned or actual end date of activities on the ground. This can be e.g. the date when the project is planned to cease implementation activities. For no information enter 2100-01-01.",
+      "description": "Approximate planned or actual end date of activities on the ground. This can be e.g. the date when the project is planned to cease implementation activities. For no information enter 2100-01-01.",
       "type": "string",
       "format": "date"
 
@@ -78,7 +78,7 @@
       "type": "string"
     },
     "location_type_theme": {
-      "description": "Sectoral_cross-sectoral location type preselection field, see table sheets 'Location Types' & KC Themes. If there is no fit,  select '_Generic/Crosssect.' here and then 'other physical/immaterial' in the next column.",
+      "description": "Sectoral / cross-sectoral location type preselection field. Choose from drop-down menu. If there is no fit, select '_Generic/Cross_sectoral'.",
       "type": "string",
       "enum": [
         "_Generic_Cross_Sectoral",
@@ -100,7 +100,7 @@
       ]
     },
     "location_type_name": {
-      "description": "After selecting the KC Theme, choose the most appropriate location type, see table sheet 'Location Types'. If there is no fit please select 'other phys./imm.'",
+      "description": "After selecting the Location Type Theme, choose the most appropriate Location Type Name from the drop-down menu. If there is no fit, select '_Generic/Cross_sect.', and then 'other physical' or 'other immaterial'.",
       "type": "string",
       "enum": [
         "(communal) public infrastructure",
@@ -108,9 +108,11 @@
         "(urban) street",
         "advisory facility / support",
         "agricultural extension services",
+        "agricultural plantations",
         "agroforestry area",
         "airplane(s)",
         "airport",
+        "animal production (intensive)",
         "aquaculture",
         "area covered by off-grid renewable energy",
         "area covered by on-grid renewable energy",
@@ -156,7 +158,7 @@
         "democratization support",
         "depot / marshalling yard",
         "desalination plant",
-        "dezentralized sanitation (area)",
+        "decentralized sanitation (area)",
         "digital services usage area",
         "digital transformation of public services",
         "disarmament, demobilisation, reintegration of combatants (DDR)",
@@ -190,16 +192,16 @@
         "flood protection",
         "food access point",
         "food processing & value addition",
-        "fonds manager headquarter",
         "free trade zone",
         "fuel station",
+        "funds manager headquarters",
         "garden(s)",
-        "garantees",
         "geothermal power plant",
         "grazing / rangeland (management) area",
         "guarantees",
         "habitat or species management area (IUCN Cat IV)",
         "harvesting sites for NTFPs and other biodiversity products",
+        "hazardous waste treatment plant",
         "health post",
         "highway",
         "hospital",
@@ -223,6 +225,7 @@
         "intergovernmental fiscal transfer mechanism",
         "interurban rail infrastructure",
         "internally displaced persons (IDP) camp",
+        "intraurban rail infrastructure",
         "invasive species management area",
         "irrigated field(s)",
         "irrigation infrastructure",
@@ -242,20 +245,26 @@
         "micro, small & medium enterprises (MSME)",
         "microfinance institution (MFI)",
         "mine(s)",
+        "mining associated facilities",
         "ministry",
         "monitoring and research sites",
         "museum",
         "national park (IUCN Cat II)",
         "natural monument or feature (IUCN Cat III)",
         "no-take zone",
+        "nuclear power station",
         "nursery(-ies) / seed bank",
         "office building",
+        "oil and gas extraction (marine)",
+        "oil and gas extraction (terrestrial)",
+        "oil or gas power station",
+        "oil refinery",
         "other effective area-based conservation measures (OECM)",
         "other immaterial",
         "other physical",
         "other road-based vehicles",
         "other waste treatment plants",
-        "parcs & other green areas",
+        "parks & other green areas",
         "pedestrian lane(s) / bike lane(s)",
         "political / institutional reforms (PBF / PBL)",
         "pond",
@@ -267,6 +276,7 @@
         "public (admin) training institute",
         "public / social dialogue",
         "public financial management (PFM)",
+        "quarrying",
         "rail operation control system / intelligent transport system (ITS)",
         "railroad",
         "railroad station",
@@ -303,6 +313,7 @@
         "subordinated loans",
         "supply chains (support) area",
         "sustainably farmed area(s)",
+        "tidal / marine power station",
         "traffic management center / IST",
         "transfer station",
         "TVET school / infrastructure",
@@ -325,6 +336,8 @@
         "wilderness area (IUCN Cat Ib)",
         "wildlife management area / game reserve",
         "wind power plant",
+        "wind power plant (offshore)",
+        "wind power plant (onshore)",
         "women's shelter / GBV support",
         "workshop(s)"
       ]

@@ -14,7 +14,7 @@ export enum OGMFileTypes {
     GEOJSON = "application/geo+json"
 }
 
-export type SupportedLangs = "en" | "fr";
+export type SupportedLangs = "en" | "fr" | "es" | "pt";
 
 // ============================================================================
 // Excel Conversion Functions
@@ -23,8 +23,10 @@ export default class Utils {
     static sheetNameMap = {
         en: "fill-me",
         fr: "fill-me Remplissez-moi",
+        es: "fill-me - relléname",
+        pt: "fill-me - preencha-me",
     };
-    static sheetNameArray: Array<string> = ["fill-me", "fill-me Remplissez-moi"];
+    static sheetNameArray: Array<string> = ["fill-me", "fill-me Remplissez-moi", "fill-me - relléname", "fill-me - preencha-me"];
 
     private static readonly PROPERTY_ORDER_PREFIX = ['fid', 'scheme_version', 'date_of_data_collection'] as const;
     private static readonly PROPERTY_ORDER_SUFFIX = ['latitude', 'longitude'] as const;
@@ -280,7 +282,7 @@ export default class Utils {
     }
 
 
-    private static useXlsxLbToConvert(data: string | ArrayBuffer, lang: "en" | "fr") {
+    private static useXlsxLbToConvert(data: string | ArrayBuffer, lang: SupportedLangs) {
 
 
         const wb = xlsx.read(
@@ -444,7 +446,19 @@ export default class Utils {
     }
 
     public static sanitizeLang(lang: string): SupportedLangs {
-        return lang === 'fr' ? 'fr' : 'en';
+        switch (lang) {
+            case 'fr':
+                return 'fr';
+            case 'es':
+                return 'es';
+            case 'pt':
+                return 'pt';
+            case 'en':
+                return 'en';
+            default:
+                console.warn(`Unsupported language "${lang}", falling back to "en"`);
+                return 'en';
+        }
     }
 
     /**
