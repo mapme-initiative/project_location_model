@@ -405,23 +405,25 @@ export default function FileValidator(): React.ReactElement {
 		<header>
 			<h1>Location Validator</h1>
 			<p>
-				The Location Validator is an open-source tool designed to validate project location data against the specifications of <a target={"_blank"} href={"https://mapme-initiative.github.io/project_location_model/"}>KfWs Open Project Location Model</a>. The validator accepts both Excel and GeoJSON files as input data. It identifies errors that need to be addressed, such as missing values in mandatory fields or incorrect formats for specific entries (e.g., dates not provided in the correct format). <br /><br />Errors should be corrected in the original file using Excel or GIS software, after which the files can be re-evaluated using this tool. Additionally, you can utilize the map feature within the tool to assess the geographic accuracy of the submitted project locations.
-				Once all locations are valid, the "SEND EMAIL" button will appear blue. You can than send an email with the validated data to your project counterpart.<br /><br />
+				The Location Validator is an open-source tool designed to validate project location data against the specifications of <a target={"_blank"} href={"https://mapme-initiative.github.io/project_location_model/"}>KfW's Project Location Model (PLM)</a>. The validator accepts both Excel and GeoJSON files as input data. Use the FILE UPLOAD button to select your file. The validator identifies errors that need to be addressed, such as missing values in mandatory fields or incorrect formats for specific entries (e.g., dates not provided in the correct format).
+				<br /><br />Errors must be corrected in the original file using Excel or GIS software, after which the file must be re-checked using this tool. Repeat until a green status appears, indicating that the data is valid. Once the data is valid, you can check the submitted project locations on the map below for plausibility and geographic accuracy.
+				<br />In addition, the DOWNLOAD GEOJSON button will turn blue. Please download your validated file and do not change its name. After downloading, the SEND EMAIL button will turn blue. Use it to send the validated file (both the Excel as well as the GeoJSON file) to your project counterpart at KfW.<br /><br />
 				<strong>Important:</strong>
 			</p>
 			<ul>
-				<li>Please use the <a href="https://mapme-initiative.github.io/project_location_model/annex1.html">latest Excel template</a> for validation; earlier versions are not accepted by the validator.</li>
-				<li>Attention: The template contains an example row that will be automatically deleted during the validation process.</li>
-				<li>Make sure to attach the latest validated (and valid) version of the data to the email.</li>
-				<li>In case of any problems or feature request create an issue at our <a href={"https://github.com/mapme-initiative/project_location_model/issues"}>Github-Issue-Tracker</a>.</li>
+				<li>Please use the latest PLM Excel template for validation. You can download it either from the bottom of this page or via this link: <a href="https://mapme-initiative.github.io/project_location_model/annex1.html">PLM Excel template</a>. Earlier versions are not accepted by the validator.</li>
+				<li>Select the language matching your template in the dropdown menu LANGUAGE (TEMPLATE) below.</li>
+				<li>The template contains an example row that will be automatically deleted during the validation process.</li>
+				<li>Make sure to attach the latest validated (and valid) version of the file to the email to your project counterpart at KfW.</li>
+				<li>In case of any problems or feature requests create an issue via <a href={"https://github.com/mapme-initiative/project_location_model/issues"}>REPORT ISSUE</a>.</li>
 			</ul>
-			<FormControl variant="outlined" size="small">
-				<InputLabel id="lang-select-label">Language</InputLabel>
+			<FormControl variant="outlined" size="small" sx={{ minWidth: 200 }}>
+				<InputLabel id="lang-select-label">LANGUAGE (TEMPLATE)</InputLabel>
 				<Select
 					labelId="lang-select-label"
 					value={lang}
 					onChange={e => setLang(Utils.sanitizeLang(String(e.target.value)))}
-					label="Language"
+					label="LANGUAGE (TEMPLATE)"
 				>
 				<MenuItem value="en">English</MenuItem>
 				<MenuItem value="fr">Français</MenuItem>
@@ -516,12 +518,17 @@ export default function FileValidator(): React.ReactElement {
 
 
 		{/* ____________________ Example ____________________ */}
-		<h4>Example Files:</h4>
+		<h4>Project Location Model (PLM) Templates:</h4>
 		<ul className="example-files">
 			<li><p><a href={"./Project_Location_Data_Template_EN_V04.xlsx"}>Excel template (EN V04)</a></p></li>
 			<li><p><a href={"./Project_Location_Data_Template_ES_V04.xlsx"}>Excel template (ES V04)</a></p></li>
 			<li><p><a href={"./Project_Location_Data_Template_FR_V04.xlsx"}>Excel template (FR V04)</a></p></li>
 			<li><p><a href={"./Project_Location_Data_Template_PT_V04.xlsx"}>Excel template (PT V04)</a></p></li>
+
+		</ul>
+
+		<h4>Invalid example files</h4>
+		<ul className="example-files">
 			<li><p><a href={"./sheet_not_found.xlsx"}>no fill-me sheet</a></p></li>
 			<li><p><a href={"./invalid_data.xlsx"}>invalid_data</a></p></li>
 			{/* <li><p><a href={"./missing_lat_lon.xlsx"}>missing_lat_lon</a></p></li> */}
