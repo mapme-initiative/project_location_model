@@ -157,19 +157,19 @@ export default function FileValidator(): React.ReactElement {
 							setIsDataValid(false);
 							break;
 						}
-						const feature = stripped[0];
+						const { features: [feature], warnings: geometryWarnings } = Utils.applyGeometryPriority(stripped);
 						const isValid = validateProject ? validateProject(feature) : false;
 						const orderedFeature = Utils.orderFeature(feature);
 						const wrap = { type: "FeatureCollection", features: [orderedFeature] };
 						if (isValid) {
 							setValidationResult("GeoJSON Feature data is valid!");
 							setGeoJsonDataWrap(wrap);
-							setValidationWarnings(buildValidationWarnings(wrap, removedCount));
+							setValidationWarnings([...geometryWarnings, ...buildValidationWarnings(wrap, removedCount)]);
 							setIsDataValid(true);
 						} else {
 							const formattedErrors = Utils.formatAjvErrorsWithRow(validateProject.errors || [], 1);
 							setValidationResult(formattedErrors.join("\n"));
-							setValidationWarnings(buildValidationWarnings(wrap, removedCount));
+							setValidationWarnings([...geometryWarnings, ...buildValidationWarnings(wrap, removedCount)]);
 							setIsDataValid(false);
 						}
 						break;
@@ -185,7 +185,8 @@ export default function FileValidator(): React.ReactElement {
 							setIsDataValid(false);
 							break;
 						}
-						const transformedFeatures = withoutExamples
+						const { features: geometryResolved, warnings: geometryWarnings } = Utils.applyGeometryPriority(withoutExamples);
+						const transformedFeatures = geometryResolved
 							.map((feature: any) => Utils.toValidatedFeature(feature, validateProject))
 							.filter(Utils.notNull) // Remove invalid features
 							.map((feature: any) => Utils.orderFeature(feature));
@@ -203,9 +204,7 @@ export default function FileValidator(): React.ReactElement {
 							type: "FeatureCollection",
 							features: transformedFeatures,
 						});
-						setValidationWarnings(buildValidationWarnings({
-							features: withoutExamples,
-						}, removedCount));
+						setValidationWarnings([...geometryWarnings, ...buildValidationWarnings({ features: geometryResolved }, removedCount)]);
 						break;
 					}
 					default: {

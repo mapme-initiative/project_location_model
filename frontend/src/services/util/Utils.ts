@@ -62,6 +62,59 @@ export default class Utils {
         return { items: remaining, removedCount };
     }
 
+    private static hasCoordinateValue(value: unknown): boolean {
+        return value !== undefined && value !== null && !(typeof value === 'string' && value.trim() === '');
+    }
+
+    /**
+     * GeoJSON uploads can carry two sets of coordinates: the geometry and leftover
+     * latitude/longitude properties (e.g. from an Excel sheet that was turned into
+     * a GeoJSON in QGIS). The geometry always wins: latitude/longitude are removed
+     * from the properties so they are neither validated nor exported.
+     * `hasConflict` is true only when a non-empty latitude/longitude value was dropped
+     * next to a geometry (empty leftovers are removed silently).
+     */
+    static resolveGeometryPriority<T extends { geometry?: unknown; properties?: Record<string, unknown> | null }>(
+        feature: T
+    ): { feature: T; hasConflict: boolean } {
+        const props = feature?.properties;
+        if (!props || typeof props !== 'object' || feature.geometry == null) {
+            return { feature, hasConflict: false };
+        }
+        if (!('latitude' in props) && !('longitude' in props)) {
+            return { feature, hasConflict: false };
+        }
+        const { latitude, longitude, ...rest } = props;
+        return {
+            feature: { ...feature, properties: rest },
+            hasConflict: Utils.hasCoordinateValue(latitude) || Utils.hasCoordinateValue(longitude),
+        };
+    }
+
+    /** Applies resolveGeometryPriority to all features and returns a user-facing warning (if any). */
+    static applyGeometryPriority<T extends { geometry?: unknown; properties?: Record<string, unknown> | null }>(
+        features: T[]
+    ): { features: T[]; warnings: string[] } {
+        const conflictRows: number[] = [];
+        const resolved = features.map((feature, index) => {
+            const result = Utils.resolveGeometryPriority(feature);
+            if (result.hasConflict) conflictRows.push(index + 1);
+            return result.feature;
+        });
+        if (conflictRows.length === 0) {
+            return { features: resolved, warnings: [] };
+        }
+        const shown = conflictRows.slice(0, 10).join(', ');
+        const rows = conflictRows.length > 10 ? `${shown}, … (${conflictRows.length} in total)` : shown;
+        return {
+            features: resolved,
+            warnings: [
+                `Warning: Two sets of coordinates were found (geometry and latitude/longitude properties) in feature(s) ${rows}. ` +
+                `The geometry from the GeoJSON is used for validation; the latitude/longitude values are ignored and removed from the validated output.`,
+            ],
+        };
+    }
+
     static getExampleRowsRemovedNote(removedCount: number): string | null {
         if (removedCount <= 0) {
             return null;
