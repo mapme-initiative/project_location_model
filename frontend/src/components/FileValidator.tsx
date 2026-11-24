@@ -157,21 +157,14 @@ export default function FileValidator(): React.ReactElement {
 							setIsDataValid(false);
 							break;
 						}
-						const feature = stripped[0];
-						const isValid = validateProject ? validateProject(feature) : false;
-						const orderedFeature = Utils.orderFeature(feature);
+						// Row index is 1-based among features remaining after example-row removal.
+						const resolved = Utils.toValidatedFeature(stripped[0], validateProject, 1);
+						const orderedFeature = Utils.orderFeature(resolved);
 						const wrap = { type: "FeatureCollection", features: [orderedFeature] };
-						if (isValid) {
-							setValidationResult("GeoJSON Feature data is valid!");
-							setGeoJsonDataWrap(wrap);
-							setValidationWarnings(buildValidationWarnings(wrap, removedCount));
-							setIsDataValid(true);
-						} else {
-							const formattedErrors = Utils.formatAjvErrorsWithRow(validateProject.errors || [], 1);
-							setValidationResult(formattedErrors.join("\n"));
-							setValidationWarnings(buildValidationWarnings(wrap, removedCount));
-							setIsDataValid(false);
-						}
+						setValidationResult("GeoJSON Feature data is valid!");
+						setGeoJsonDataWrap(wrap);
+						setValidationWarnings(buildValidationWarnings(wrap, removedCount));
+						setIsDataValid(true);
 						break;
 					}
 					case "FeatureCollection": {
@@ -186,19 +179,12 @@ export default function FileValidator(): React.ReactElement {
 							break;
 						}
 						const transformedFeatures = withoutExamples
-							.map((feature: any) => Utils.toValidatedFeature(feature, validateProject))
-							.filter(Utils.notNull) // Remove invalid features
+							.map((feature: any, index: number) =>
+								Utils.toValidatedFeature(feature, validateProject, index + 1)
+							)
 							.map((feature: any) => Utils.orderFeature(feature));
-						if (transformedFeatures.length === withoutExamples.length) {
-							setValidationResult("GeoJSON FeatureCollection data is valid!");
-							setIsDataValid(true)
-						} else {
-							setValidationResult(
-								"Error: Some features in the GeoJSON FeatureCollection failed validation."
-							);
-							setIsDataValid(false)
-						}
-
+						setValidationResult("GeoJSON FeatureCollection data is valid!");
+						setIsDataValid(true);
 						setGeoJsonDataWrap({
 							type: "FeatureCollection",
 							features: transformedFeatures,
@@ -217,6 +203,7 @@ export default function FileValidator(): React.ReactElement {
 			})
 			.catch(e => {
 				console.error(e)
+				setIsDataValid(false)
 				setValidationResult(`Errors at json-validating: ${e.message} `)
 			})
 	}

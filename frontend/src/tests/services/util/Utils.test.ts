@@ -226,12 +226,158 @@ describe("Utils", () => {
 
     // -----------------------------------------------------------------------
     describe("toValidatedFeature", () => {
-        it("returns feature if validator returns true", () => {
-            const feature = { foo: "bar" };
-            expect(Utils.toValidatedFeature(feature, (() => true) as unknown as ValidateFunction<unknown>)).toBe(feature);
+        const pointFeature = {
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [10, 20] },
+            properties: { latitude: 20, longitude: 10 },
+        };
+
+        it("returns resolved feature if validator returns true", () => {
+            const result = Utils.toValidatedFeature(
+                pointFeature,
+                (() => true) as unknown as ValidateFunction<unknown>,
+                1
+            );
+            expect(result.geometry).toEqual(pointFeature.geometry);
+            expect(result.properties).not.toHaveProperty("latitude");
+            expect(result.properties).not.toHaveProperty("longitude");
         });
-        it("returns null if validator returns false", () => {
-            expect(Utils.toValidatedFeature({}, (() => false) as unknown as ValidateFunction<unknown>)).toBeNull();
+        it("throws with Row N when validator returns false", () => {
+            const validate = Object.assign(() => false, { errors: [{ instancePath: "/properties/x", message: "fail", keyword: "type", schemaPath: "", params: { type: "string" } }] }) as unknown as ValidateFunction<unknown>;
+            expect(() => Utils.toValidatedFeature(pointFeature, validate, 3)).toThrow(/Row 3/);
+        });
+    });
+
+    describe("resolveFeatureGeography", () => {
+        const closedRing = [
+            [8.0, 50.0],
+            [8.1, 50.0],
+            [8.1, 50.1],
+            [8.0, 50.1],
+            [8.0, 50.0],
+        ];
+        const openRing = [
+            [8.0, 50.0],
+            [8.1, 50.0],
+            [8.1, 50.1],
+            [8.0, 50.1],
+        ];
+
+        it("preserves usable geometry and strips lat/lon (including null)", () => {
+            const feature = {
+                type: "Feature",
+                geometry: { type: "Polygon", coordinates: [closedRing] },
+                properties: { location_name: "A", latitude: null, longitude: null },
+            };
+            const resolved = Utils.resolveFeatureGeography(feature, 2);
+            expect(resolved.geometry).toEqual(feature.geometry);
+            expect(resolved.properties).toEqual({ location_name: "A" });
+        });
+
+        it("preserves geometry when lat/lon are valid but redundant", () => {
+            const feature = {
+                type: "Feature",
+                geometry: { type: "Point", coordinates: [1, 2] },
+                properties: { latitude: 9, longitude: 8 },
+            };
+            const resolved = Utils.resolveFeatureGeography(feature, 1);
+            expect(resolved.geometry.coordinates).toEqual([1, 2]);
+            expect(resolved.properties).not.toHaveProperty("latitude");
+        });
+
+        it("builds Point from lat/lon when geometry is null", () => {
+            const feature = {
+                type: "Feature",
+                geometry: null,
+                properties: { latitude: 0, longitude: 0 },
+            };
+            const resolved = Utils.resolveFeatureGeography(feature, 1);
+            expect(resolved.geometry).toEqual({ type: "Point", coordinates: [0, 0] });
+            expect(resolved.properties).toEqual({});
+        });
+
+        it("builds Point from lat/lon when coordinates array is empty", () => {
+            const feature = {
+                type: "Feature",
+                geometry: { type: "Polygon", coordinates: [] },
+                properties: { latitude: 10, longitude: 20 },
+            };
+            const resolved = Utils.resolveFeatureGeography(feature, 1);
+            expect(resolved.geometry).toEqual({ type: "Point", coordinates: [20, 10] });
+        });
+
+        it("errors when geometry is empty and lat/lon are missing", () => {
+            expect(() =>
+                Utils.resolveFeatureGeography({ type: "Feature", geometry: null, properties: {} }, 4)
+            ).toThrow("Row 4: Missing valid geographic location");
+        });
+
+        it("rejects unclosed polygon ring without falling back to lat/lon", () => {
+            const feature = {
+                type: "Feature",
+                geometry: { type: "Polygon", coordinates: [openRing] },
+                properties: { latitude: 1, longitude: 2 },
+            };
+            expect(() => Utils.resolveFeatureGeography(feature, 5)).toThrow(/Row 5:.*not closed/);
+        });
+
+        it("rejects out-of-bounds coordinates without falling back to lat/lon", () => {
+            const feature = {
+                type: "Feature",
+                geometry: { type: "Point", coordinates: [200, 10] },
+                properties: { latitude: 10, longitude: 20 },
+            };
+            expect(() => Utils.resolveFeatureGeography(feature, 6)).toThrow(/Row 6:.*bounds/);
+        });
+
+        it("rejects malformed non-empty geometry even when lat/lon are valid", () => {
+            const feature = {
+                type: "Feature",
+                geometry: { type: "Point", coordinates: [Number.NaN, 10] },
+                properties: { latitude: 10, longitude: 20 },
+            };
+            expect(() => Utils.resolveFeatureGeography(feature, 7)).toThrow(/Row 7:/);
+        });
+
+        it("preserves a valid GeometryCollection and strips lat/lon", () => {
+            const feature = {
+                type: "Feature",
+                geometry: {
+                    type: "GeometryCollection",
+                    geometries: [
+                        { type: "Point", coordinates: [8, 50] },
+                        { type: "LineString", coordinates: [[8, 50], [9, 51]] },
+                    ],
+                },
+                properties: { latitude: null, longitude: null, name: "C" },
+            };
+            const resolved = Utils.resolveFeatureGeography(feature, 1);
+            expect(resolved.geometry.type).toBe("GeometryCollection");
+            expect(resolved.geometry.geometries).toHaveLength(2);
+            expect(resolved.properties).toEqual({ name: "C" });
+        });
+
+        it("treats empty GeometryCollection as empty and falls back to lat/lon", () => {
+            const feature = {
+                type: "Feature",
+                geometry: { type: "GeometryCollection", geometries: [] },
+                properties: { latitude: 3, longitude: 4 },
+            };
+            const resolved = Utils.resolveFeatureGeography(feature, 1);
+            expect(resolved.geometry).toEqual({ type: "Point", coordinates: [4, 3] });
+        });
+
+        it("resolves mixed Point + Polygon fixture with null lat/lon on the polygon", () => {
+            const collection = JSON.parse(
+                fs.readFileSync(path.join(assetsDir, "points_mixed_null_latlon.geojson"), "utf8")
+            );
+            const point = Utils.resolveFeatureGeography(collection.features[0], 1);
+            const polygon = Utils.resolveFeatureGeography(collection.features[1], 2);
+            expect(point.geometry.type).toBe("Point");
+            expect(point.properties).not.toHaveProperty("latitude");
+            expect(polygon.geometry.type).toBe("Polygon");
+            expect(polygon.properties).not.toHaveProperty("longitude");
+            expect(polygon.properties.latitude).toBeUndefined();
         });
     });
 

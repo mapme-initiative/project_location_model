@@ -1,0 +1,64 @@
+{
+  "type": "FeatureCollection",
+  "name": "points_mixed_null_latlon",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "scheme_version": "4.0",
+        "donor_project_no": 29937,
+        "project_acronym": "EXP II",
+        "data_provider": "Example Consulting",
+        "publishing_restrictions": "no",
+        "related_community": "Example Community",
+        "location_name": "Example I",
+        "location_activity_status": "Pipeline/identification",
+        "activity_start_date": "2019-12-13",
+        "activity_end_date": "2024-12-13",
+        "activity_description": "Example of Activity Description",
+        "location_type_theme": "Energy",
+        "location_type_name": "area covered by off-grid renewable energy",
+        "geographic_exactness": "exact",
+        "latitude": 36.29333,
+        "longitude": 74.598611
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [74.598611, 36.29333]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "scheme_version": "4.0",
+        "donor_project_no": 202612001,
+        "project_acronym": "WORKSHOP",
+        "data_provider": "Geodata-Desk",
+        "publishing_restrictions": "no",
+        "related_community": "Geodata-Desk",
+        "location_name": "Workshop Example no. 1",
+        "location_activity_status": "Implementation",
+        "activity_start_date": "2026-12-01",
+        "activity_end_date": "2027-07-01",
+        "activity_description": "Example for geometry-based project locations",
+        "location_type_theme": "_Generic_Cross_Sectoral",
+        "location_type_name": "advisory facility / support",
+        "geographic_exactness": "exact",
+        "latitude": null,
+        "longitude": null
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [8.654069465236258, 50.119070823275599],
+            [8.65419681470399, 50.119047493056783],
+            [8.654142236360675, 50.118960004634964],
+            [8.654033079674049, 50.11898333489642],
+            [8.654069465236258, 50.119070823275599]
+          ]
+        ]
+      }
+    }
+  ]
+}

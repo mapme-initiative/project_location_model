@@ -12,11 +12,52 @@ import './scss/MapComponent.scss';
 interface GeoJSONFeature {
   type: "Feature";
   geometry: {
-    type: "Point" | "Polygon" | "LineString";
-    coordinates: number[] | number[][] | number[][][];
-  };
+    type: string;
+    coordinates?: number[] | number[][] | number[][][] | number[][][][];
+    geometries?: unknown[];
+  } | null;
   properties: NonNullable<unknown>;
 }
+
+const PINNED_GEOMETRY_TYPES = new Set([
+  "Polygon",
+  "MultiPolygon",
+  "LineString",
+  "MultiLineString",
+]);
+
+type PinGlyph = "point" | "line" | "area";
+
+/** Inner mark: dot = Point, bar = Line, triangle = Polygon/area. */
+function pinGlyphSvg(glyph: PinGlyph): string {
+  if (glyph === "line") {
+    return `<rect x="7.5" y="10" width="10" height="2.5" rx="1" fill="#fff"/>`;
+  }
+  if (glyph === "area") {
+    return `<path fill="#fff" d="M12.5 6.5 L17.5 15.5 L7.5 15.5 Z"/>`;
+  }
+  return `<circle fill="#fff" cx="12.5" cy="11.5" r="3.2"/>`;
+}
+
+/** Same teardrop pin; color + center glyph distinguish geometry type (no icon library). */
+function makePinIcon(color: string, glyph: PinGlyph): L.DivIcon {
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="25" height="41" viewBox="0 0 25 41" aria-hidden="true">` +
+    `<path fill="${color}" stroke="#2b2b2b" stroke-width="1" d="M12.5 0C5.6 0 0 5.6 0 12.5c0 9.4 12.5 28.5 12.5 28.5S25 21.9 25 12.5C25 5.6 19.4 0 12.5 0z"/>` +
+    pinGlyphSvg(glyph) +
+    `</svg>`;
+  return L.divIcon({
+    className: `plm-map-pin plm-map-pin--${glyph}`,
+    html: svg,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+  });
+}
+
+const pointPinIcon = makePinIcon("#2A81CB", "point");
+const linePinIcon = makePinIcon("#E65100", "line");
+const areaPinIcon = makePinIcon("#2E7D32", "area");
 interface GeoJSONCollection {
   type: "FeatureCollection";
   features: GeoJSONFeature[];
@@ -104,22 +145,43 @@ const FullscreenSidebar: React.FC<{
  * @param coordinates - The coordinates to check.
  * @returns true if any NaN is found, false otherwise.
  */
-function hasInvalidCoordinates(coordinates: number[] | number[][] | number[][][]): boolean {
-  if (Array.isArray(coordinates)) {
-    return coordinates.some((coord) =>
-      Array.isArray(coord) ? hasInvalidCoordinates(coord) : isNaN(coord)
-    );
+function hasInvalidCoordinates(coordinates: unknown): boolean {
+  if (!Array.isArray(coordinates)) {
+    return false;
   }
-  return false;
+  return coordinates.some((coord) =>
+    Array.isArray(coord) ? hasInvalidCoordinates(coord) : typeof coord === "number" && isNaN(coord)
+  );
 }
 
 /**
- * Filters the features array to remove those with invalid coordinates.
- * @param features - Array of GeoJSON features.
- * @returns A new array containing only valid features.
+ * Drops features that cannot be drawn (null geometry or NaN coordinates).
+ * GeometryCollection uses geometries[], not coordinates.
  */
 function filterValidFeatures(features: GeoJSONFeature[]): GeoJSONFeature[] {
-  return features.filter((feature) => !hasInvalidCoordinates(feature.geometry.coordinates));
+  return features.filter((feature) => {
+    const geometry = feature?.geometry;
+    if (geometry == null || typeof geometry !== "object") {
+      return false;
+    }
+    if (geometry.type === "GeometryCollection") {
+      return Array.isArray(geometry.geometries);
+    }
+    if (!("coordinates" in geometry) || geometry.coordinates == null) {
+      return false;
+    }
+    return !hasInvalidCoordinates(geometry.coordinates);
+  });
+}
+
+function pinIconForGeometryType(type: string): L.DivIcon {
+  if (type === "LineString" || type === "MultiLineString") {
+    return linePinIcon;
+  }
+  if (type === "Point" || type === "MultiPoint") {
+    return pointPinIcon;
+  }
+  return areaPinIcon;
 }
 
 const MapComponent: React.FC<MapComponentProps> = ({ geoJsonData }) => {
@@ -149,10 +211,41 @@ const MapComponent: React.FC<MapComponentProps> = ({ geoJsonData }) => {
   };
 
   const onEachFeature = (feature: any, layer: L.Layer) => {
-    layer.on('click', () => {
-      setSelectedFeature(feature);
-    });
+    const openSidebar = () => setSelectedFeature(feature);
+    layer.on("click", openSidebar);
+
+    // Visual pin only — does not change exported geometry. No extra pin for GeometryCollection.
+    const geometryType = feature?.geometry?.type;
+    if (!PINNED_GEOMETRY_TYPES.has(geometryType)) {
+      return;
+    }
+    if (!("getBounds" in layer) || typeof (layer as L.Polygon).getBounds !== "function") {
+      return;
+    }
+
+    let pin: L.Marker | null = null;
+    const addPin = () => {
+      const bounds = (layer as L.Polygon | L.Polyline).getBounds();
+      const map = (layer as any)._map as L.Map | undefined;
+      if (!map || !bounds?.isValid()) {
+        return;
+      }
+      pin = L.marker(bounds.getCenter(), { icon: pinIconForGeometryType(geometryType) });
+      pin.on("click", openSidebar);
+      pin.addTo(map);
+    };
+    const removePin = () => {
+      if (pin) {
+        pin.remove();
+        pin = null;
+      }
+    };
+    layer.on("add", addPin);
+    layer.on("remove", removePin);
   };
+
+  // Remount when features change (properties or geometry) so pins/layers stay in sync.
+  const geoJsonKey = JSON.stringify(validGeoJsonData?.features ?? null);
 
   return (
     <div style={mapWrapperStyle}>
@@ -207,7 +300,12 @@ const MapComponent: React.FC<MapComponentProps> = ({ geoJsonData }) => {
         </LayersControl>
 
         {validGeoJsonData && (
-          <GeoJSON data={validGeoJsonData} onEachFeature={onEachFeature} />
+          <GeoJSON
+            key={geoJsonKey}
+            data={validGeoJsonData}
+            pointToLayer={(_feature, latlng) => L.marker(latlng, { icon: pointPinIcon })}
+            onEachFeature={onEachFeature}
+          />
         )}
 
         <FullscreenSidebar

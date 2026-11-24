@@ -340,16 +340,231 @@ export default class Utils {
         return `Error${path}${message}`;
     }
 
-    public static toValidatedFeature(feature: any, validateProject: ValidateFunction<unknown>): any | null {
-        const isValid = validateProject(feature);
-
-        if(isValid == false && validateProject.errors == null)
-            console.error("Validation failed but no errors provided by AJV");
-        if(isValid == false && validateProject.errors != null) {
-            console.log(Utils.formatAjvErrorsWithRow(validateProject.errors, -1).join("\n"));
-            throw new Error(Utils.formatAjvErrorsWithRow(validateProject.errors, -1).join("\n"));
+    /** Lat/lon usable as a Point fallback (0 is valid; null/NaN are not). */
+    static isValidLatLon(latitude: unknown, longitude: unknown): boolean {
+        if (typeof latitude !== "number" || typeof longitude !== "number") {
+            return false;
         }
-        return isValid ? feature : null;
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+            return false;
+        }
+        return latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
+    }
+
+    static stripLatLonProperties(properties: Record<string, unknown> | null | undefined): Record<string, unknown> {
+        if (!properties) {
+            return {};
+        }
+        const rest = { ...properties };
+        delete rest.latitude;
+        delete rest.longitude;
+        return rest;
+    }
+
+    /**
+     * Null geometry, coordinates: [], or GeometryCollection with geometries: [].
+     * Missing coordinates on a typed geometry is not empty (AJV reports that).
+     */
+    static isNullOrEmptyGeometry(geometry: unknown): boolean {
+        if (geometry == null) {
+            return true;
+        }
+        if (typeof geometry !== "object") {
+            return false;
+        }
+        const geom = geometry as { type?: unknown; coordinates?: unknown; geometries?: unknown };
+        if (geom.type === "GeometryCollection") {
+            return Array.isArray(geom.geometries) && geom.geometries.length === 0;
+        }
+        return Array.isArray(geom.coordinates) && geom.coordinates.length === 0;
+    }
+
+    private static isValidPosition(position: unknown): boolean {
+        if (!Array.isArray(position) || position.length < 2) {
+            return true; // structural shape left to AJV
+        }
+        const lon = position[0];
+        const lat = position[1];
+        if (typeof lon !== "number" || typeof lat !== "number" || !Number.isFinite(lon) || !Number.isFinite(lat)) {
+            return false;
+        }
+        return lon >= -180 && lon <= 180 && lat >= -90 && lat <= 90;
+    }
+
+    private static positionsEqual(a: unknown, b: unknown): boolean {
+        if (!Array.isArray(a) || !Array.isArray(b) || a.length < 2 || b.length < 2) {
+            return false;
+        }
+        return a[0] === b[0] && a[1] === b[1];
+    }
+
+    private static isRingClosed(ring: unknown): boolean {
+        if (!Array.isArray(ring) || ring.length < 4) {
+            return true; // ring length left to AJV
+        }
+        return Utils.positionsEqual(ring[0], ring[ring.length - 1]);
+    }
+
+    /**
+     * Gaps AJV does not cover well: finite in-bounds positions and closed polygon rings.
+     * Returns an error message or null. Never throws.
+     */
+    static getGeometryPreCheckError(geometry: unknown): string | null {
+        try {
+            if (geometry == null || typeof geometry !== "object") {
+                return null;
+            }
+            const geom = geometry as { type?: unknown; coordinates?: unknown; geometries?: unknown };
+            const type = geom.type;
+
+            if (type === "GeometryCollection") {
+                if (!Array.isArray(geom.geometries)) {
+                    return null;
+                }
+                for (const member of geom.geometries) {
+                    const nested = Utils.getGeometryPreCheckError(member);
+                    if (nested) {
+                        return nested;
+                    }
+                }
+                return null;
+            }
+
+            if (!("coordinates" in geom) || geom.coordinates == null) {
+                return null;
+            }
+
+            const coords = geom.coordinates;
+            if (type === "Point") {
+                return Utils.isValidPosition(coords)
+                    ? null
+                    : "Geometry coordinates must be finite numbers within geographic bounds.";
+            }
+            if (type === "MultiPoint" || type === "LineString") {
+                if (!Array.isArray(coords)) {
+                    return null;
+                }
+                for (const pos of coords) {
+                    if (!Utils.isValidPosition(pos)) {
+                        return "Geometry coordinates must be finite numbers within geographic bounds.";
+                    }
+                }
+                return null;
+            }
+            if (type === "MultiLineString" || type === "Polygon") {
+                if (!Array.isArray(coords)) {
+                    return null;
+                }
+                for (const lineOrRing of coords) {
+                    if (!Array.isArray(lineOrRing)) {
+                        continue;
+                    }
+                    if (type === "Polygon" && !Utils.isRingClosed(lineOrRing)) {
+                        return "Polygon ring is not closed (first and last positions must match).";
+                    }
+                    for (const pos of lineOrRing) {
+                        if (!Utils.isValidPosition(pos)) {
+                            return "Geometry coordinates must be finite numbers within geographic bounds.";
+                        }
+                    }
+                }
+                return null;
+            }
+            if (type === "MultiPolygon") {
+                if (!Array.isArray(coords)) {
+                    return null;
+                }
+                for (const polygon of coords) {
+                    if (!Array.isArray(polygon)) {
+                        continue;
+                    }
+                    for (const ring of polygon) {
+                        if (!Array.isArray(ring)) {
+                            continue;
+                        }
+                        if (!Utils.isRingClosed(ring)) {
+                            return "Polygon ring is not closed (first and last positions must match).";
+                        }
+                        for (const pos of ring) {
+                            if (!Utils.isValidPosition(pos)) {
+                                return "Geometry coordinates must be finite numbers within geographic bounds.";
+                            }
+                        }
+                    }
+                }
+                return null;
+            }
+            return null;
+        } catch {
+            return "Invalid geometry.";
+        }
+    }
+
+    /**
+     * Prefer existing usable geometry; build a Point from lat/lon only when geometry is null/empty.
+     * Strips redundant latitude/longitude from properties after resolution.
+     */
+    static resolveFeatureGeography(feature: any, rowNumber = 1): any {
+        const prefix = `Row ${rowNumber}`;
+        try {
+            if (!feature || typeof feature !== "object") {
+                throw new Error(`${prefix}: Invalid feature.`);
+            }
+            const properties = (feature.properties && typeof feature.properties === "object")
+                ? feature.properties as Record<string, unknown>
+                : {};
+            const geometry = feature.geometry;
+
+            if (Utils.isNullOrEmptyGeometry(geometry)) {
+                if (Utils.isValidLatLon(properties.latitude, properties.longitude)) {
+                    return {
+                        ...feature,
+                        geometry: {
+                            type: "Point",
+                            coordinates: [properties.longitude, properties.latitude],
+                        },
+                        properties: Utils.stripLatLonProperties(properties),
+                    };
+                }
+                throw new Error(`${prefix}: Missing valid geographic location (geometry and latitude/longitude).`);
+            }
+
+            // Non-empty geometry wins; never substitute lat/lon if it fails checks.
+            const preCheckError = Utils.getGeometryPreCheckError(geometry);
+            if (preCheckError) {
+                throw new Error(`${prefix}: ${preCheckError}`);
+            }
+
+            return {
+                ...feature,
+                properties: Utils.stripLatLonProperties(properties),
+            };
+        } catch (e) {
+            if (e instanceof Error && e.message.startsWith(prefix)) {
+                throw e;
+            }
+            throw new Error(`${prefix}: Invalid geometry.`);
+        }
+    }
+
+    public static toValidatedFeature(
+        feature: any,
+        validateProject: ValidateFunction<unknown>,
+        rowNumber = 1
+    ): any {
+        const resolved = Utils.resolveFeatureGeography(feature, rowNumber);
+        const isValid = validateProject(resolved);
+
+        if (isValid === false && validateProject.errors == null) {
+            console.error("Validation failed but no errors provided by AJV");
+            throw new Error(`Row ${rowNumber}: Validation failed.`);
+        }
+        if (isValid === false && validateProject.errors != null) {
+            const message = Utils.formatAjvErrorsWithRow(validateProject.errors, rowNumber).join("\n");
+            console.log(message);
+            throw new Error(message);
+        }
+        return resolved;
     }
 
     public static notNull<T>(value: T | null): value is T {

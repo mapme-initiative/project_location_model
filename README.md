@@ -4,10 +4,46 @@ This repository contains all necessary information to collect georeferenced proj
 
 You can find the documentation in a user-friendly format [here](https://mapme-initiative.github.io/project_location_model/). 
 
-The documentation specifies everything you need to know to collect project location data. It also contains a validator tool that can be used before sumbissions. You can find the validator tool [here](https://mapme-initiative.github.io/project_location_model/project-location-validator/index.html). 
+The documentation specifies everything you need to know to collect project location data. It also contains a validator tool that can be used before submissions. You can find the validator tool [here](https://mapme-initiative.github.io/project_location_model/project-location-validator/index.html). 
 
 In case you need support or in case you would like to propose improvements to the model, the validator tool or the repository, feel free to create an issue or fork the repository and create an upstream pull request.
 
+## Project Location Validator
+
+The [Location Validator](https://mapme-initiative.github.io/project_location_model/project-location-validator/index.html) checks project location data against the Project Location Model and shows locations on a map.
+
+**Supported formats:** Excel (`.xlsx`), CSV, and GeoJSON.
+
+### Map pin legend
+
+Pins use the same teardrop shape; color and center mark show the geometry type:
+
+| Type | Pin |
+|------|-----|
+| Point | <img src="docs/assets/validator-pins/pin-point.svg" alt="Point pin" width="25" height="41" /> blue, white dot |
+| Line | <img src="docs/assets/validator-pins/pin-line.svg" alt="Line pin" width="25" height="41" /> orange, white bar |
+| Polygon | <img src="docs/assets/validator-pins/pin-polygon.svg" alt="Polygon pin" width="25" height="41" /> green, white triangle |
+
+### GeoJSON validation rules
+
+For GeoJSON uploads, existing feature geometry takes priority over `latitude` / `longitude` in properties:
+
+- If geometry is valid → keep it and ignore lat/lon
+- If geometry is null or empty → use lat/lon when they are valid (creates a Point)
+- If geometry is null or empty and lat/lon are not valid → reject the record
+- If geometry is present but invalid → reject the record (no fallback to lat/lon)
+
+Excel and CSV uploads still build Point geometries from latitude/longitude as before.
+
+```mermaid
+flowchart TD
+    A[GeoJSON feature] --> B{Is geometry valid?}
+    B -->|Yes| C[Keep geometry and ignore lat/lon]
+    B -->|No, geometry is null or empty| D{Are lat/lon valid?}
+    D -->|Yes| E[Create Point geometry]
+    D -->|No| F[Reject record]
+    B -->|No, geometry is invalid| F
+```
 
 # Validator tool (for developers)
 
@@ -21,8 +57,6 @@ npm run dev
 
 ### E-Mail-Button:
 one of the column will be used in the email-button. This can be changed with config-file at [AppConfig.jsonc](frontend/src/AppConfig.jsonc)  
-
-
 
 ## Analyze-Tools
 * SonarQube: for code quality
