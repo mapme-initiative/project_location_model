@@ -1,4 +1,6 @@
 import { ErrorObject, ValidateFunction } from "ajv";
+import Ajv from "ajv";
+import addFormats from "ajv-formats";
 import Utils from "../../../services/util/Utils.ts";
 
 const fs   = require("fs");
@@ -206,6 +208,84 @@ describe("Utils", () => {
         });
         it("getExampleRowsRemovedNote returns note when rows were removed", () => {
             expect(Utils.getExampleRowsRemovedNote(1)).toContain("123456789");
+        });
+    });
+
+
+    // -----------------------------------------------------------------------
+    describe("geometry priority (geometry + latitude/longitude in GeoJSON)", () => {
+        const geometry = { type: "Point", coordinates: [10.5, 50.5] };
+        const makeFeature = (props: Record<string, unknown>) => ({ type: "Feature", geometry, properties: props });
+
+        it("removes latitude/longitude and flags a conflict when both are present", () => {
+            const { feature, hasConflict } = Utils.resolveGeometryPriority(
+                makeFeature({ location_name: "A", latitude: 1, longitude: 2 })
+            );
+            expect(hasConflict).toBe(true);
+            expect(feature.properties).toEqual({ location_name: "A" });
+            expect(feature.geometry).toBe(geometry);
+        });
+        it("does not mutate the input feature", () => {
+            const input = makeFeature({ latitude: 1, longitude: 2 });
+            Utils.resolveGeometryPriority(input);
+            expect(input.properties).toEqual({ latitude: 1, longitude: 2 });
+        });
+        it("strips empty latitude/longitude silently (no conflict)", () => {
+            const { feature, hasConflict } = Utils.resolveGeometryPriority(
+                makeFeature({ location_name: "A", latitude: null, longitude: "" })
+            );
+            expect(hasConflict).toBe(false);
+            expect(feature.properties).toEqual({ location_name: "A" });
+        });
+        it("keeps latitude/longitude when there is no geometry", () => {
+            const input = { type: "Feature", geometry: null, properties: { latitude: 1, longitude: 2 } };
+            const { feature, hasConflict } = Utils.resolveGeometryPriority(input);
+            expect(hasConflict).toBe(false);
+            expect(feature).toBe(input);
+        });
+        it("leaves features without latitude/longitude untouched", () => {
+            const input = makeFeature({ location_name: "A" });
+            const { feature, hasConflict } = Utils.resolveGeometryPriority(input);
+            expect(hasConflict).toBe(false);
+            expect(feature).toBe(input);
+        });
+        it("produces one warning listing affected features", () => {
+            const { features, warnings } = Utils.applyGeometryPriority([
+                makeFeature({ latitude: 1, longitude: 2 }),
+                makeFeature({ location_name: "ok" }),
+                makeFeature({ latitude: 3, longitude: 4 }),
+            ]);
+            expect(warnings).toHaveLength(1);
+            expect(warnings[0]).toContain("feature(s) 1, 3");
+            expect(warnings[0]).toContain("geometry from the GeoJSON is used");
+            expect(features.every(f => !("latitude" in f.properties))).toBe(true);
+        });
+        it("produces no warning when there is no conflict", () => {
+            expect(Utils.applyGeometryPriority([makeFeature({ location_name: "ok" })]).warnings).toEqual([]);
+        });
+
+        describe("against the real schema", () => {
+            const schemaDir = path.resolve(__dirname, "../../../../../model/schema");
+            const readSchema = (f: string) => JSON.parse(fs.readFileSync(path.join(schemaDir, f), "utf8"));
+            const validFeature = () => JSON.parse(fs.readFileSync(path.join(assetsDir, "validate_en.json"), "utf8"));
+            const getValidator = () => {
+                const ajv = new Ajv({ allErrors: true, useDefaults: true });
+                addFormats(ajv);
+                ajv.addSchema(readSchema("project_core_schema_en.json"));
+                ajv.addSchema(readSchema("feature_project_schema.json"));
+                return ajv.getSchema("feature_project_schema");
+            };
+
+            it("a feature with unusable stale latitude/longitude fails before and passes after geometry priority", () => {
+                const validate = getValidator();
+                const base = validFeature();
+                expect(validate(base)).toBe(true);
+                const stale = { ...base, properties: { ...base.properties, latitude: "n/a", longitude: 999 } };
+                expect(validate(stale)).toBe(false);
+                const { feature, hasConflict } = Utils.resolveGeometryPriority(stale);
+                expect(hasConflict).toBe(true);
+                expect(validate(feature)).toBe(true);
+            });
         });
     });
 
